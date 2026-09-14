@@ -15,9 +15,15 @@
     :root { --bg: #07090e; --card-bg: rgba(22, 27, 38, 0.88); --card-border: rgba(255, 255, 255, 0.08); --accent: #38bdf8; --accent-glow: rgba(56, 189, 248, 0.35); --text: #f8fafc; --text-muted: #8899a6; --surface: rgba(15, 23, 42, 0.7); --heart-active: #f43f5e; --safe-bottom: env(safe-area-inset-bottom, 12px); }
     [data-theme="light"] { --bg: #f1f5f9; --card-bg: rgba(255, 255, 255, 0.92); --card-border: rgba(0, 0, 0, 0.08); --accent: #0ea5e9; --accent-glow: rgba(14, 165, 233, 0.3); --text: #0f172a; --text-muted: #64748b; --surface: rgba(241, 245, 249, 0.9); --heart-active: #e11d48; }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background: radial-gradient(circle at 50% 0%, #1e293b 0%, var(--bg) 70%); color: var(--text); min-height: 100dvh; padding: 12px 12px calc(12px + var(--safe-bottom)); overflow-x: hidden; display: flex; justify-content: center; align-items: flex-start; }
+    body { background: radial-gradient(circle at 50% 0%, #1e293b 0%, var(--bg) 70%); color: var(--text); min-height: 100dvh; padding: 12px 12px calc(12px + var(--safe-bottom)); overflow-x: hidden; display: flex; justify-content: center; align-items: flex-start; transition: background 0.08s; }
     [data-theme="light"] body { background: radial-gradient(circle at 50% 0%, #e0f2fe 0%, var(--bg) 70%); }
-    .player-container { background: var(--card-bg); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid var(--card-border); width: 100%; max-width: 420px; padding: 16px; border-radius: 24px; box-shadow: 0 20px 40px -12px rgba(0,0,0,0.6); display: flex; flex-direction: column; gap: 12px; position: relative; }
+    body.strobe-flash { background: #ffffff !important; }
+    body.strobe-color-1 { background: radial-gradient(circle at 50% 50%, #f43f5e 0%, #07090e 90%) !important; }
+    body.strobe-color-2 { background: radial-gradient(circle at 50% 50%, #38bdf8 0%, #07090e 90%) !important; }
+    body.strobe-color-3 { background: radial-gradient(circle at 50% 50%, #a855f7 0%, #07090e 90%) !important; }
+    body.strobe-color-4 { background: radial-gradient(circle at 50% 50%, #22c55e 0%, #07090e 90%) !important; }
+    .player-container { background: var(--card-bg); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid var(--card-border); width: 100%; max-width: 420px; padding: 16px; border-radius: 24px; box-shadow: 0 20px 40px -12px rgba(0,0,0,0.6); display: flex; flex-direction: column; gap: 12px; position: relative; transition: box-shadow 0.08s, transform 0.08s; }
+    .strobe-pulse-card { transform: scale(1.02); box-shadow: 0 0 35px var(--accent) !important; }
     .top-bar { display: flex; gap: 8px; align-items: center; }
     .search-bar { flex: 1; display: flex; gap: 6px; background: var(--surface); border: 1px solid var(--card-border); border-radius: 14px; padding: 4px 4px 4px 12px; align-items: center; }
     .search-bar:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
@@ -81,6 +87,7 @@
     .extra-btn { background: none; border: none; color: var(--text-muted); font-size: 0.7rem; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 8px; border-radius: 10px; }
     .extra-btn svg { width: 18px; height: 18px; }
     .extra-btn.active, .extra-btn:active { color: var(--accent); }
+    .extra-btn.strobe-on { color: #facc15 !important; animation: bounce 0.4s infinite alternate; }
     .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 90; display: none; align-items: flex-end; justify-content: center; }
     .sheet-overlay.show { display: flex; }
     .sheet { background: var(--card-bg); backdrop-filter: blur(24px); width: 100%; max-width: 420px; border-radius: 22px 22px 0 0; padding: 16px 16px calc(20px + var(--safe-bottom)); max-height: 75dvh; overflow-y: auto; border: 1px solid var(--card-border); }
@@ -109,7 +116,7 @@
   </style>
 </head>
 <body>
-  <div class="player-container">
+  <div class="player-container" id="player-container">
     <div class="sleep-badge" id="sleep-badge">Sleep 15m</div>
 
     <div class="top-bar">
@@ -174,6 +181,7 @@
       <button class="extra-btn" id="forward-btn"><svg viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z"/></svg><span>+10s</span></button>
       <button class="extra-btn" id="sleep-btn"><svg viewBox="0 0 24 24"><path d="M12.34 2.02C6.59 1.82 2 6.42 2 12c0 5.52 4.48 10 10 10 3.71 0 6.93-2.02 8.66-5.02-7.51-.25-12.09-8.43-8.32-14.96z"/></svg><span>Sleep</span></button>
       <button class="extra-btn" id="lyrics-btn"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg><span>Lyrics</span></button>
+      <button class="extra-btn" id="strobe-btn"><svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg><span>Strobe</span></button>
     </div>
   </div>
 
@@ -216,7 +224,6 @@
     </div>
   </div>
 
-  <!-- In-App Lyrics Sheet -->
   <div class="sheet-overlay" id="lyrics-sheet">
     <div class="sheet">
       <div class="sheet-header"><div class="sheet-title" id="lyrics-title">Lyrics</div><button class="sheet-close" data-close>×</button></div>
@@ -231,7 +238,6 @@
     const YOUTUBE_API_KEY = "AIzaSyCJuQ8KoTdihisteVC-HB_APmNWqLofBoc";
     // =================================================
 
-    // Feature 1: Automatic PWA Manifest & Service Worker
     const pwaManifest = { name: "Aura Music Player", short_name: "Aura", start_url: "./", display: "standalone", background_color: "#07090e", theme_color: "#07090e", icons: [{ src: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=192", sizes: "192x192", type: "image/jpeg" }, { src: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=512", sizes: "512x512", type: "image/jpeg" }] };
     document.getElementById("pwa-manifest").setAttribute("href", "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(pwaManifest)));
     if ('serviceWorker' in navigator) { const swCode = `self.addEventListener('install', e => self.skipWaiting()); self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));`; const swBlob = new Blob([swCode], { type: 'application/javascript' }); navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {}); }
@@ -252,6 +258,7 @@
     let playlists = JSON.parse(localStorage.getItem("aura_playlists") || "{}"), searchHistory = JSON.parse(localStorage.getItem("aura_history") || "[]");
     let volume = parseInt(localStorage.getItem("aura_vol") || "80"), isMuted = false, sleepEnd = 0;
     let parsedLyrics = [], isSyncedLyrics = false;
+    let strobeActive = false, strobeTimer = null, strobeBeatCount = 0;
 
     const $ = id => document.getElementById(id);
     const searchInput = $("search-input"), searchBtn = $("search-btn"), resultsList = $("results-list"), queueList = $("queue-list");
@@ -260,13 +267,19 @@
     const playBtn = $("play-btn"), playIcon = $("play-icon"), seekBar = $("seek-bar"), currentTimeEl = $("current-time"), durationEl = $("duration");
     const volBar = $("vol-bar"), muteBtn = $("mute-btn"), volIcon = $("vol-icon"), shuffleBtn = $("shuffle-btn"), repeatBtn = $("repeat-btn");
     const viz = $("viz"), toastEl = $("toast"), sleepBadge = $("sleep-badge"), lyricsContent = $("lyrics-content"), lyricsTitle = $("lyrics-title");
+    const strobeBtn = $("strobe-btn"), playerCard = $("player-container");
 
     const tag = document.createElement("script"); tag.src = "https://www.youtube.com/iframe_api"; document.head.appendChild(tag);
     window.onYouTubeIframeAPIReady = function () { player = new YT.Player("yt-player", { height: "200", width: "200", playerVars: { playsinline: 1, controls: 0, disablekb: 1, modestbranding: 1, rel: 0, iv_load_policy: 3 }, events: { onReady: () => { if (player.setVolume) player.setVolume(volume); }, onStateChange: onPlayerStateChange } }); };
 
     function onPlayerStateChange(e) {
-      if (e.data === YT.PlayerState.PLAYING) { isPlaying = true; setPlayIcon(false); coverEl.classList.add("playing"); viz.classList.add("show"); startProgressTracking(); }
-      else { isPlaying = false; setPlayIcon(true); coverEl.classList.remove("playing"); viz.classList.remove("show"); stopProgressTracking(); }
+      if (e.data === YT.PlayerState.PLAYING) {
+        isPlaying = true; setPlayIcon(false); coverEl.classList.add("playing"); viz.classList.add("show"); startProgressTracking();
+        if (strobeActive) startStrobeLoop();
+      } else {
+        isPlaying = false; setPlayIcon(true); coverEl.classList.remove("playing"); viz.classList.remove("show"); stopProgressTracking();
+        stopStrobeLoop();
+      }
       if (e.data === YT.PlayerState.ENDED) { if (repeatMode === 1) { player.seekTo(0, true); player.playVideo(); } else { playNextTrack(); } }
     }
 
@@ -275,10 +288,49 @@
     function toast(msg) { toastEl.textContent = msg; toastEl.classList.add("show"); setTimeout(() => toastEl.classList.remove("show"), 2200); }
     function formatTime(sec) { if (isNaN(sec)) return "0:00"; const m = Math.floor(sec / 60), s = Math.floor(sec % 60); return `${m}:${s < 10 ? "0" : ""}${s}`; }
     function extractVideoId(input) { const m = input.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/); return m ? m[1] : null; }
-    // Feature 7 Helper: Extract playlist ID
     function extractPlaylistId(input) { const m = input.match(/[?&]list=([a-zA-Z0-9_-]+)/); return m ? m[1] : null; }
 
-    // Feature 2: Infinite Autoplay (Related Tracks Engine)
+    // ================= PARTY STROBE ENGINE =================
+    function toggleStrobe() {
+      strobeActive = !strobeActive;
+      strobeBtn.classList.toggle("strobe-on", strobeActive);
+      if (strobeActive) {
+        toast("⚡ Party Strobe Activated");
+        if (isPlaying) startStrobeLoop();
+      } else {
+        stopStrobeLoop();
+        resetStrobeClasses();
+        toast("Strobe Deactivated");
+      }
+    }
+
+    function startStrobeLoop() {
+      stopStrobeLoop();
+      const strobeStyles = ['strobe-color-1', 'strobe-color-2', 'strobe-color-3', 'strobe-color-4', 'strobe-flash'];
+      strobeTimer = setInterval(() => {
+        resetStrobeClasses();
+        strobeBeatCount++;
+        const chosen = (strobeBeatCount % 8 === 0) ? 'strobe-flash' : strobeStyles[strobeBeatCount % 4];
+        document.body.classList.add(chosen);
+        playerCard.classList.add('strobe-pulse-card');
+        setTimeout(() => {
+          document.body.classList.remove('strobe-flash');
+          playerCard.classList.remove('strobe-pulse-card');
+        }, 110);
+      }, 340); // ~176 BPM sync for energetic party strobing
+    }
+
+    function stopStrobeLoop() {
+      if (strobeTimer) { clearInterval(strobeTimer); strobeTimer = null; }
+    }
+
+    function resetStrobeClasses() {
+      document.body.classList.remove('strobe-flash', 'strobe-color-1', 'strobe-color-2', 'strobe-color-3', 'strobe-color-4');
+      playerCard.classList.remove('strobe-pulse-card');
+    }
+
+    strobeBtn.onclick = toggleStrobe;
+
     async function fetchRelatedAutoplay(videoId) {
       try {
         const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&relatedToVideoId=${videoId}&type=video&maxResults=6&key=${YOUTUBE_API_KEY}`;
@@ -290,7 +342,6 @@
       } catch (e) {}
     }
 
-    // Feature 4: LRCLIB In-App Lyrics Integration
     async function loadLyrics(track) {
       lyricsTitle.textContent = `${track.title} - Lyrics`; lyricsContent.innerHTML = "Fetching lyrics..."; parsedLyrics = []; isSyncedLyrics = false;
       try {
@@ -325,7 +376,6 @@
       }
     }
 
-    // Feature 7: Fetch and load public playlist URLs
     async function loadPublicPlaylistUrl(playlistId) {
       toast("Loading full playlist..."); searchBtn.innerHTML = "<span>...</span>";
       try {
@@ -440,7 +490,6 @@
         navigator.mediaSession.setActionHandler("previoustrack", playPrevTrack); navigator.mediaSession.setActionHandler("nexttrack", playNextTrack);
         navigator.mediaSession.setActionHandler("seekbackward", () => skip(-10)); navigator.mediaSession.setActionHandler("seekforward", () => skip(10));
       }
-      // If Queue has only 1 track left, auto-load related songs for infinite playback
       if (activeQueue.length - queueIndex <= 1) fetchRelatedAutoplay(track.id);
       if ($("lyrics-sheet").classList.contains("show")) loadLyrics(track);
     }
@@ -529,7 +578,6 @@
     });
     function clearSleep() { sleepEnd = 0; sleepBadge.classList.remove("show"); }
 
-    // Feature 4 Trigger: Open Lyrics Modal
     $("lyrics-btn").onclick = () => {
       if (!currentTrack) return toast("No track playing");
       openSheet("lyrics-sheet"); loadLyrics(currentTrack);
