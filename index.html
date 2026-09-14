@@ -259,6 +259,7 @@
     let volume = parseInt(localStorage.getItem("aura_vol") || "80"), isMuted = false, sleepEnd = 0;
     let parsedLyrics = [], isSyncedLyrics = false;
     let strobeActive = false, strobeTimer = null, strobeBeatCount = 0;
+    let pendingResumeSeek = null;
 
     const $ = id => document.getElementById(id);
     const searchInput = $("search-input"), searchBtn = $("search-btn"), resultsList = $("results-list"), queueList = $("queue-list");
@@ -270,7 +271,19 @@
     const strobeBtn = $("strobe-btn"), playerCard = $("player-container");
 
     const tag = document.createElement("script"); tag.src = "https://www.youtube.com/iframe_api"; document.head.appendChild(tag);
-    window.onYouTubeIframeAPIReady = function () { player = new YT.Player("yt-player", { height: "200", width: "200", playerVars: { playsinline: 1, controls: 0, disablekb: 1, modestbranding: 1, rel: 0, iv_load_policy: 3 }, events: { onReady: () => { if (player.setVolume) player.setVolume(volume); }, onStateChange: onPlayerStateChange } }); };
+    window.onYouTubeIframeAPIReady = function () {
+      player = new YT.Player("yt-player", {
+        height: "200", width: "200",
+        playerVars: { playsinline: 1, controls: 0, disablekb: 1, modestbranding: 1, rel: 0, iv_load_policy: 3 },
+        events: {
+          onReady: () => {
+            if (player.setVolume) player.setVolume(volume);
+            restoreSavedSession(); // Auto-restore track & seek position on load/refresh
+          },
+          onStateChange: onPlayerStateChange
+        }
+      });
+    };
 
     function onPlayerStateChange(e) {
       if (e.data === YT.PlayerState.PLAYING) {
@@ -290,7 +303,51 @@
     function extractVideoId(input) { const m = input.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/); return m ? m[1] : null; }
     function extractPlaylistId(input) { const m = input.match(/[?&]list=([a-zA-Z0-9_-]+)/); return m ? m[1] : null; }
 
-    // ================= PARTY STROBE ENGINE =================
+    // ================= PERSISTENT PLAYBACK ENGINE =================
+    function saveCurrentSession(curTime) {
+      if (!currentTrack) return;
+      localStorage.setItem("aura_last_session", JSON.stringify({
+        track: currentTrack,
+        time: curTime || 0,
+        queue: activeQueue,
+        queueIdx: queueIndex,
+        timestamp: Date.now()
+      }));
+    }
+
+    function restoreSavedSession() {
+      const raw = localStorage.getItem("aura_last_session");
+      if (!raw) return;
+      try {
+        const session = JSON.parse(raw);
+        if (!session.track || !session.track.id) return;
+        currentTrack = session.track;
+        if (session.queue && session.queue.length) activeQueue = session.queue;
+        queueIndex = session.queueIdx ?? -1;
+        updateQueueCount();
+
+        // Populate metadata on screen
+        titleEl.textContent = currentTrack.title;
+        artistEl.textContent = currentTrack.artist + " (Resume ready)";
+        coverEl.style.backgroundImage = `url(${currentTrack.cover})`;
+        coverGlowEl.style.backgroundImage = `url(${currentTrack.cover})`;
+        updateHeartState();
+
+        const resumeTime = session.time || 0;
+        currentTimeEl.textContent = formatTime(resumeTime);
+        pendingResumeSeek = resumeTime;
+
+        // Cue video at exact saved second (cue keeps it loaded without blocking autoplay policies)
+        if (player && player.cueVideoById) {
+          player.cueVideoById({
+            videoId: currentTrack.id,
+            startSeconds: resumeTime
+          });
+        }
+        toast("Resumed last session. Tap Play!");
+      } catch (e) {}
+    }
+
     function toggleStrobe() {
       strobeActive = !strobeActive;
       strobeBtn.classList.toggle("strobe-on", strobeActive);
@@ -298,9 +355,7 @@
         toast("⚡ Party Strobe Activated");
         if (isPlaying) startStrobeLoop();
       } else {
-        stopStrobeLoop();
-        resetStrobeClasses();
-        toast("Strobe Deactivated");
+        stopStrobeLoop(); resetStrobeClasses(); toast("Strobe Deactivated");
       }
     }
 
@@ -308,27 +363,15 @@
       stopStrobeLoop();
       const strobeStyles = ['strobe-color-1', 'strobe-color-2', 'strobe-color-3', 'strobe-color-4', 'strobe-flash'];
       strobeTimer = setInterval(() => {
-        resetStrobeClasses();
-        strobeBeatCount++;
+        resetStrobeClasses(); strobeBeatCount++;
         const chosen = (strobeBeatCount % 8 === 0) ? 'strobe-flash' : strobeStyles[strobeBeatCount % 4];
-        document.body.classList.add(chosen);
-        playerCard.classList.add('strobe-pulse-card');
-        setTimeout(() => {
-          document.body.classList.remove('strobe-flash');
-          playerCard.classList.remove('strobe-pulse-card');
-        }, 110);
-      }, 340); // ~176 BPM sync for energetic party strobing
+        document.body.classList.add(chosen); playerCard.classList.add('strobe-pulse-card');
+        setTimeout(() => { document.body.classList.remove('strobe-flash'); playerCard.classList.remove('strobe-pulse-card'); }, 110);
+      }, 340);
     }
 
-    function stopStrobeLoop() {
-      if (strobeTimer) { clearInterval(strobeTimer); strobeTimer = null; }
-    }
-
-    function resetStrobeClasses() {
-      document.body.classList.remove('strobe-flash', 'strobe-color-1', 'strobe-color-2', 'strobe-color-3', 'strobe-color-4');
-      playerCard.classList.remove('strobe-pulse-card');
-    }
-
+    function stopStrobeLoop() { if (strobeTimer) { clearInterval(strobeTimer); strobeTimer = null; } }
+    function resetStrobeClasses() { document.body.classList.remove('strobe-flash', 'strobe-color-1', 'strobe-color-2', 'strobe-color-3', 'strobe-color-4'); playerCard.classList.remove('strobe-pulse-card'); }
     strobeBtn.onclick = toggleStrobe;
 
     async function fetchRelatedAutoplay(videoId) {
@@ -479,10 +522,18 @@
       });
     }
 
-    function loadTrack(track, addToRecent = true) {
-      currentTrack = track; titleEl.textContent = track.title; artistEl.textContent = track.artist;
+    function loadTrack(track, addToRecent = true, startSec = 0) {
+      currentTrack = track; pendingResumeSeek = null;
+      titleEl.textContent = track.title; artistEl.textContent = track.artist;
       coverEl.style.backgroundImage = `url(${track.cover})`; coverGlowEl.style.backgroundImage = `url(${track.cover})`; updateHeartState();
-      if (player?.loadVideoById) player.loadVideoById(track.id);
+
+      if (player && player.loadVideoById) {
+        player.loadVideoById({
+          videoId: track.id,
+          startSeconds: startSec
+        });
+      }
+
       if (addToRecent) { recent = recent.filter(t => t.id !== track.id); recent.unshift(track); if (recent.length > 40) recent.pop(); localStorage.setItem("aura_recent", JSON.stringify(recent)); }
       if ("mediaSession" in navigator) {
         navigator.mediaSession.metadata = new MediaMetadata({ title: track.title, artist: track.artist, artwork: [{ src: track.cover, sizes: "512x512", type: "image/jpeg" }] });
@@ -494,33 +545,60 @@
       if ($("lyrics-sheet").classList.contains("show")) loadLyrics(track);
     }
 
-    function togglePlay() { if (!player) return; isPlaying ? player.pauseVideo() : player.playVideo(); }
+    function togglePlay() {
+      if (!player) return;
+      if (isPlaying) {
+        player.pauseVideo();
+      } else {
+        // If resuming right after page reload
+        if (pendingResumeSeek !== null) {
+          player.seekTo(pendingResumeSeek, true);
+          pendingResumeSeek = null;
+        }
+        player.playVideo();
+      }
+    }
+
     function playNextTrack() {
       if (!activeQueue.length) return;
       if (shuffleOn) { queueIndex = Math.floor(Math.random() * activeQueue.length); }
       else { queueIndex = (queueIndex + 1) % activeQueue.length; if (queueIndex === 0 && repeatMode !== 2 && !shuffleOn) { player.pauseVideo(); return; } }
       loadTrack(activeQueue[queueIndex]);
     }
+
     function playPrevTrack() {
       if (!activeQueue.length) return;
       if (player?.getCurrentTime && player.getCurrentTime() > 3) { player.seekTo(0, true); return; }
       queueIndex = (queueIndex - 1 + activeQueue.length) % activeQueue.length; loadTrack(activeQueue[queueIndex]);
     }
+
     function skip(sec) { if (player?.getCurrentTime) player.seekTo(Math.max(0, player.getCurrentTime() + sec), true); }
     function addToQueue(track) { activeQueue.push(track); updateQueueCount(); if (document.querySelector('.tab-btn[data-tab="queue"].active')) renderTrackList(queueList, activeQueue, "queue"); toast("Added to queue"); }
 
     function startProgressTracking() {
       stopProgressTracking();
       progressTimer = setInterval(() => {
-        if (!player?.getCurrentTime) return;
+        if (!player || !player.getCurrentTime) return;
         const cur = player.getCurrentTime(), dur = player.getDuration();
-        if (dur > 0) { seekBar.value = (cur / dur) * 100; currentTimeEl.textContent = formatTime(cur); durationEl.textContent = formatTime(dur); }
+        if (dur > 0) {
+          seekBar.value = (cur / dur) * 100;
+          currentTimeEl.textContent = formatTime(cur);
+          durationEl.textContent = formatTime(dur);
+          saveCurrentSession(cur); // Auto-save playback timestamp
+        }
         syncLyricsDisplay(cur);
         if (sleepEnd && Date.now() >= sleepEnd) { player.pauseVideo(); clearSleep(); toast("Sleep timer ended"); }
-      }, 350);
+      }, 400);
     }
+
     function stopProgressTracking() { clearInterval(progressTimer); }
-    seekBar.addEventListener("input", () => { if (player?.getDuration) player.seekTo((seekBar.value / 100) * player.getDuration(), true); });
+    seekBar.addEventListener("input", () => {
+      if (player?.getDuration) {
+        const target = (seekBar.value / 100) * player.getDuration();
+        player.seekTo(target, true);
+        saveCurrentSession(target);
+      }
+    });
 
     volBar.value = volume;
     volBar.addEventListener("input", () => { volume = +volBar.value; isMuted = false; if (player?.setVolume) player.setVolume(volume); localStorage.setItem("aura_vol", volume); updateVolIcon(); });
