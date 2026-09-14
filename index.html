@@ -2,207 +2,340 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Clean Stream Player</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Aura Music Player</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
   <style>
     :root {
-      --bg: #0b0f19;
-      --card-bg: #151e2e;
+      --bg: #07090e;
+      --card-bg: rgba(22, 27, 38, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
       --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.35);
       --text: #f8fafc;
-      --text-muted: #94a3b8;
-      --border: #1e293b;
-      --card-inner: #0f172a;
+      --text-muted: #8899a6;
+      --surface: rgba(15, 23, 42, 0.6);
+      --heart-active: #f43f5e;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
 
     body {
-      background: var(--bg);
+      background: radial-gradient(circle at 50% 10%, #1e293b 0%, var(--bg) 80%);
       color: var(--text);
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
       padding: 16px;
+      overflow-x: hidden;
     }
 
-    .app-container {
+    .player-container {
       background: var(--card-bg);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--card-border);
       width: 100%;
-      max-width: 420px;
+      max-width: 400px;
       padding: 24px;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      border-radius: 28px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 16px;
+      position: relative;
     }
 
-    /* Search Section */
-    .search-box {
+    /* Search bar */
+    .search-bar {
       display: flex;
       gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 4px 6px 4px 14px;
+      align-items: center;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-bar:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
     }
 
     .search-input {
       flex: 1;
-      background: var(--card-inner);
-      border: 1px solid var(--border);
-      color: #fff;
-      padding: 10px 14px;
-      border-radius: 12px;
+      background: transparent;
+      border: none;
       outline: none;
+      color: var(--text);
       font-size: 0.9rem;
+      font-weight: 500;
     }
 
-    .search-input:focus {
-      border-color: var(--accent);
-    }
+    .search-input::placeholder { color: var(--text-muted); }
 
-    .btn-search {
+    .btn-action {
       background: var(--accent);
       border: none;
-      color: #000;
-      font-weight: 600;
-      padding: 0 16px;
+      color: #030712;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 9px 16px;
       border-radius: 12px;
       cursor: pointer;
-    }
-
-    /* Results Dropdown/List */
-    .results-list {
-      max-height: 180px;
-      overflow-y: auto;
-      background: var(--card-inner);
-      border-radius: 12px;
-      display: none;
-      flex-direction: column;
-      border: 1px solid var(--border);
-    }
-
-    .results-list.active {
-      display: flex;
-    }
-
-    .result-item {
       display: flex;
       align-items: center;
+      gap: 6px;
+      transition: transform 0.1s, opacity 0.2s;
+    }
+    .btn-action:active { transform: scale(0.96); }
+
+    /* Tabs for Search & Favorites */
+    .tabs {
+      display: flex;
       gap: 10px;
-      padding: 8px 12px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 8px;
+      margin-top: 4px;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 600;
       cursor: pointer;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 4px 8px;
+      position: relative;
+      transition: color 0.2s;
+    }
+
+    .tab-btn.active {
+      color: var(--accent);
+    }
+
+    .tab-btn.active::after {
+      content: "";
+      position: absolute;
+      bottom: -9px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    /* List Container (Results & Saved) */
+    .list-container {
+      max-height: 200px;
+      overflow-y: auto;
+      background: var(--surface);
+      border-radius: 14px;
+      border: 1px solid var(--card-border);
+      display: none;
+      flex-direction: column;
+    }
+
+    .list-container.show { display: flex; }
+
+    .track-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      cursor: pointer;
       transition: background 0.2s;
     }
+    .track-row:hover, .track-row.active { background: rgba(56, 189, 248, 0.1); }
 
-    .result-item:hover {
-      background: rgba(56, 189, 248, 0.1);
-    }
-
-    .result-thumb {
+    .track-thumb {
       width: 44px;
       height: 44px;
-      border-radius: 8px;
+      border-radius: 10px;
       object-fit: cover;
+      flex-shrink: 0;
     }
 
-    .result-info {
+    .track-meta {
+      flex: 1;
       overflow: hidden;
       text-align: left;
     }
 
-    .result-title {
+    .track-name {
       font-size: 0.85rem;
+      font-weight: 600;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      font-weight: 500;
     }
 
-    .result-channel {
+    .track-channel {
       font-size: 0.75rem;
       color: var(--text-muted);
+      margin-top: 2px;
     }
 
-    /* Player View */
-    .player-view {
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .cover-art {
+    /* Main Player Artwork Display */
+    .cover-wrapper {
+      position: relative;
       width: 220px;
       height: 220px;
-      margin: 10px 0 16px;
-      border-radius: 16px;
-      background-size: cover;
-      background-position: center;
-      background-color: var(--card-inner);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-    }
-
-    .track-title {
-      font-size: 1.1rem;
-      font-weight: 700;
-      width: 100%;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .track-artist {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-top: 4px;
-      margin-bottom: 16px;
-      width: 100%;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .progress-container {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      margin-bottom: 16px;
-    }
-
-    input[type="range"] {
-      flex: 1;
-      accent-color: var(--accent);
-      cursor: pointer;
-    }
-
-    .controls {
+      margin: 6px auto 10px;
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 24px;
     }
 
-    .btn {
+    .cover-glow {
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      border-radius: 24px;
+      filter: blur(30px);
+      opacity: 0.5;
+      z-index: 1;
+      background-size: cover;
+      background-position: center;
+      transition: background-image 0.5s ease;
+    }
+
+    .cover-art {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      border-radius: 20px;
+      background-size: cover;
+      background-position: center;
+      background-color: #1e293b;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+      border: 1px solid var(--card-border);
+      transition: transform 0.3s ease, background-image 0.5s ease;
+    }
+
+    .cover-art.playing { transform: scale(1.03); }
+
+    /* Track details */
+    .track-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+      margin-top: 4px;
+    }
+
+    .track-desc { overflow: hidden; flex: 1; }
+
+    .current-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .current-artist {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .btn-heart {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px;
+      color: var(--text-muted);
+      transition: color 0.2s, transform 0.15s;
+    }
+    .btn-heart.active { color: var(--heart-active); }
+    .btn-heart:active { transform: scale(1.2); }
+
+    /* Timeline scrub bar */
+    .timeline {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .time-stamps {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      -webkit-appearance: none;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent-glow);
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+    /* Control Buttons */
+    .playback-controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 22px;
+      margin-top: 4px;
+    }
+
+    .btn-ctrl {
       background: none;
       border: none;
       color: var(--text);
       cursor: pointer;
-      font-size: 1.2rem;
       display: flex;
       align-items: center;
       justify-content: center;
       width: 44px;
       height: 44px;
       border-radius: 50%;
-      transition: background 0.2s;
+      transition: background 0.2s, transform 0.1s;
     }
 
-    .btn:hover { background: rgba(255, 255, 255, 0.1); }
-    .btn-play { background: var(--accent); color: #000; width: 56px; height: 56px; font-size: 1.5rem; }
+    .btn-ctrl:hover { background: rgba(255, 255, 255, 0.08); }
+    .btn-ctrl:active { transform: scale(0.92); }
+
+    .btn-play {
+      width: 60px;
+      height: 60px;
+      background: var(--accent);
+      color: #030712;
+      box-shadow: 0 8px 24px var(--accent-glow);
+    }
     .btn-play:hover { background: #7dd3fc; }
 
     /* Hidden YouTube iframe */
@@ -216,37 +349,76 @@
       opacity: 0;
       pointer-events: none;
     }
+
+    /* Icons */
+    svg { fill: currentColor; width: 22px; height: 22px; }
+    .btn-play svg { width: 26px; height: 26px; }
   </style>
 </head>
 <body>
 
-  <div class="app-container">
-    <!-- Live Search -->
-    <div class="search-box">
-      <input type="text" id="search-input" class="search-input" placeholder="Search track or artist..." />
-      <button class="btn-search" id="search-btn">Find</button>
+  <div class="player-container">
+    <!-- Top Search / Direct URL Bar -->
+    <div class="search-bar">
+      <input type="text" id="search-input" class="search-input" placeholder="Search track or paste YouTube link..." />
+      <button class="btn-action" id="search-btn">
+        <span>Find</span>
+      </button>
     </div>
 
-    <!-- Search Results Container -->
-    <div id="results-list" class="results-list"></div>
+    <!-- Switcher Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-results">Results</button>
+      <button class="tab-btn" id="tab-favorites">Favorites (0)</button>
+    </div>
 
-    <!-- Player Area -->
-    <div class="player-view">
+    <!-- Search Results / Queue List -->
+    <div id="results-list" class="list-container show"></div>
+    <div id="favorites-list" class="list-container"></div>
+
+    <!-- Main Artwork Frame -->
+    <div class="cover-wrapper">
+      <div id="cover-glow" class="cover-glow"></div>
       <div id="cover" class="cover-art"></div>
-      <div id="title" class="track-title">Search a song above</div>
-      <div id="artist" class="track-artist">YouTube Stream</div>
+    </div>
 
-      <div class="progress-container">
+    <!-- Track Metadata & Favorite Button -->
+    <div class="track-header">
+      <div class="track-desc">
+        <div id="title" class="current-title">Ready to stream</div>
+        <div id="artist" class="current-artist">Search any track to start</div>
+      </div>
+      <button class="btn-heart" id="heart-btn" title="Add to Favorites">
+        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      </button>
+    </div>
+
+    <!-- Timeline / Seekbar -->
+    <div class="timeline">
+      <input type="range" id="seek-bar" value="0" min="0" max="100" step="1" />
+      <div class="time-stamps">
         <span id="current-time">0:00</span>
-        <input type="range" id="seek-bar" value="0" min="0" max="100" step="1" />
         <span id="duration">0:00</span>
       </div>
+    </div>
 
-      <div class="controls">
-        <button class="btn" id="rewind-btn">⏪</button>
-        <button class="btn btn-play" id="play-btn">▶</button>
-        <button class="btn" id="forward-btn">⏩</button>
-      </div>
+    <!-- Playback Controls -->
+    <div class="playback-controls">
+      <button class="btn-ctrl" id="prev-btn" title="Previous / Restart">
+        <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+      </button>
+      <button class="btn-ctrl" id="rewind-btn" title="Rewind 10s">
+        <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8zm-1.1 11h-.85v-3.26l-1.01.31v-.59l1.8-.63h.06V16zm4.29-1.92c0 .66-.15 1.17-.44 1.52-.3.35-.72.53-1.27.53-.54 0-.96-.18-1.25-.53-.29-.35-.44-.86-.44-1.52v-1.16c0-.66.15-1.17.44-1.52.3-.35.71-.53 1.25-.53.55 0 .97.18 1.27.53.29.35.44.86.44 1.52v1.16zm-.84-1.29c0-.46-.07-.8-.21-1.01-.14-.21-.37-.32-.68-.32-.31 0-.53.11-.67.32-.14.21-.21.55-.21 1.01v1.41c0 .46.07.8.21 1.01.14.21.36.32.67.32.31 0 .54-.11.68-.32.14-.21.21-.55.21-1.01v-1.41z"/></svg>
+      </button>
+      <button class="btn-ctrl btn-play" id="play-btn">
+        <svg id="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <button class="btn-ctrl" id="forward-btn" title="Forward 10s">
+        <svg viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8zm-1.1 11h-.85v-3.26l-1.01.31v-.59l1.8-.63h.06V16zm4.29-1.92c0 .66-.15 1.17-.44 1.52-.3.35-.72.53-1.27.53-.54 0-.96-.18-1.25-.53-.29-.35-.44-.86-.44-1.52v-1.16c0-.66.15-1.17.44-1.52.3-.35.71-.53 1.25-.53.55 0 .97.18 1.27.53.29.35.44.86.44 1.52v1.16zm-.84-1.29c0-.46-.07-.8-.21-1.01-.14-.21-.37-.32-.68-.32-.31 0-.53.11-.67.32-.14.21-.21.55-.21 1.01v1.41c0 .46.07.8.21 1.01.14.21.36.32.67.32.31 0 .54-.11.68-.32.14-.21.21-.55.21-1.01v-1.41z"/></svg>
+      </button>
+      <button class="btn-ctrl" id="next-btn" title="Next Song">
+        <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+      </button>
     </div>
   </div>
 
@@ -257,29 +429,42 @@
 
   <script>
     // ================= CONFIGURATION =================
-    const YOUTUBE_API_KEY = "AIzaSyCJuQ8KoTdihisteVC-HB_APmNWqLofBoc"; // <-- Paste your key here
+    const YOUTUBE_API_KEY = "AIzaSyCJuQ8KoTdihisteVC-HB_APmNWqLofBoc";
     // =================================================
 
     let player = null;
     let isPlaying = false;
     let progressTimer = null;
     let currentTrack = null;
+    let activeQueue = [];
+    let queueIndex = -1;
 
-    // UI Elements
+    // Load Favorites from LocalStorage
+    let favorites = JSON.parse(localStorage.getItem("aura_music_favs") || "[]");
+
+    // UI Selectors
     const searchInput = document.getElementById("search-input");
     const searchBtn = document.getElementById("search-btn");
     const resultsList = document.getElementById("results-list");
+    const favoritesList = document.getElementById("favorites-list");
+    const tabResults = document.getElementById("tab-results");
+    const tabFavorites = document.getElementById("tab-favorites");
     const titleEl = document.getElementById("title");
     const artistEl = document.getElementById("artist");
     const coverEl = document.getElementById("cover");
+    const coverGlowEl = document.getElementById("cover-glow");
+    const heartBtn = document.getElementById("heart-btn");
     const playBtn = document.getElementById("play-btn");
+    const playIcon = document.getElementById("play-icon");
+    const prevBtn = document.getElementById("prev-btn");
+    const nextBtn = document.getElementById("next-btn");
     const rewindBtn = document.getElementById("rewind-btn");
     const forwardBtn = document.getElementById("forward-btn");
     const seekBar = document.getElementById("seek-bar");
     const currentTimeEl = document.getElementById("current-time");
     const durationEl = document.getElementById("duration");
 
-    // 1. Load YouTube IFrame API
+    // Initialize YouTube IFrame API
     const tag = document.createElement("script");
     tag.src = "https://www.youtube.com/iframe_api";
     document.getElementsByTagName("head")[0].appendChild(tag);
@@ -288,58 +473,42 @@
       player = new YT.Player("yt-player", {
         height: "200",
         width: "200",
-        playerVars: {
-          playsinline: 1,
-          controls: 0,
-          disablekb: 1,
-          modestbranding: 1
-        },
-        events: {
-          onStateChange: onPlayerStateChange
-        }
+        playerVars: { playsinline: 1, controls: 0, disablekb: 1, modestbranding: 1 },
+        events: { onStateChange: onPlayerStateChange }
       });
     };
 
     function onPlayerStateChange(event) {
       if (event.data === YT.PlayerState.PLAYING) {
         isPlaying = true;
-        playBtn.textContent = "⏸";
+        setPlayIcon(false);
+        coverEl.classList.add("playing");
         startProgressTracking();
       } else {
         isPlaying = false;
-        playBtn.textContent = "▶";
+        setPlayIcon(true);
+        coverEl.classList.remove("playing");
         stopProgressTracking();
+      }
+
+      // Auto-play Next Song when Track Ends
+      if (event.data === YT.PlayerState.ENDED) {
+        playNextTrack();
       }
     }
 
-    // 2. Search Functionality via YouTube Data API
-    async function searchYouTube() {
-      const query = searchInput.value.trim();
-      if (!query) return;
-
-      if (YOUTUBE_API_KEY === "YOUR_API_KEY_HERE") {
-        alert("Please replace 'YOUR_API_KEY_HERE' in the script with your Google Cloud API key!");
-        return;
+    function setPlayIcon(showPlay) {
+      if (showPlay) {
+        playIcon.innerHTML = `<path d="M8 5v14l11-7z"/>`;
+      } else {
+        playIcon.innerHTML = `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`;
       }
+    }
 
-      searchBtn.textContent = "...";
-
-      try {
-        const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=5&q=${encodeURIComponent(query)}&key=${YOUTUBE_API_KEY}`;
-        const response = await fetch(url);
-        const data = await response.json();
-
-        if (data.error) {
-          alert(`API Error: ${data.error.message}`);
-          return;
-        }
-
-        displayResults(data.items);
-      } catch (err) {
-        console.error("Search error:", err);
-      } finally {
-        searchBtn.textContent = "Find";
-      }
+    // Helper: Extract YouTube ID from link or clean query
+    function extractVideoId(input) {
+      const match = input.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+      return match ? match[1] : null;
     }
 
     function decodeHtml(html) {
@@ -348,59 +517,99 @@
       return txt.value;
     }
 
-    function displayResults(items) {
-      resultsList.innerHTML = "";
-      if (!items || items.length === 0) {
-        resultsList.classList.remove("active");
+    // Search or Direct Play
+    async function handleSearch() {
+      const query = searchInput.value.trim();
+      if (!query) return;
+
+      // 1. Direct YouTube link pasted
+      const directId = extractVideoId(query);
+      if (directId) {
+        loadTrack({
+          id: directId,
+          title: "Streaming Video (" + directId + ")",
+          artist: "YouTube Stream",
+          cover: `https://img.youtube.com/vi/${directId}/hqdefault.jpg`
+        });
+        searchInput.value = "";
         return;
       }
 
-      items.forEach(item => {
-        const videoId = item.id.videoId;
-        const cleanTitle = decodeHtml(item.snippet.title);
-        const cleanChannel = decodeHtml(item.snippet.channelTitle);
-        const thumbUrl = item.snippet.thumbnails.default.url;
-        const highThumb = item.snippet.thumbnails.high ? item.snippet.thumbnails.high.url : thumbUrl;
+      searchBtn.innerHTML = "<span>...</span>";
 
+      try {
+        const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=8&q=${encodeURIComponent(query)}&key=${YOUTUBE_API_KEY}`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data.error) {
+          alert(`API Error: ${data.error.message}`);
+          return;
+        }
+
+        const items = data.items.map(item => ({
+          id: item.id.videoId,
+          title: decodeHtml(item.snippet.title),
+          artist: decodeHtml(item.snippet.channelTitle),
+          cover: item.snippet.thumbnails.high ? item.snippet.thumbnails.high.url : item.snippet.thumbnails.default.url
+        }));
+
+        activeQueue = items;
+        renderTrackList(resultsList, items);
+        switchTab("results");
+      } catch (err) {
+        console.error("Search error:", err);
+      } finally {
+        searchBtn.innerHTML = "<span>Find</span>";
+      }
+    }
+
+    // Render list items (Search or Favorites)
+    function renderTrackList(container, tracks) {
+      container.innerHTML = "";
+      if (tracks.length === 0) {
+        container.innerHTML = `<div style="padding: 16px; font-size: 0.8rem; color: var(--text-muted); text-align: center;">No tracks found</div>`;
+        return;
+      }
+
+      tracks.forEach((track, idx) => {
         const row = document.createElement("div");
-        row.className = "result-item";
+        row.className = "track-row";
+        if (currentTrack && currentTrack.id === track.id) row.classList.add("active");
+
         row.innerHTML = `
-          <img src="${thumbUrl}" class="result-thumb" />
-          <div class="result-info">
-            <div class="result-title">${cleanTitle}</div>
-            <div class="result-channel">${cleanChannel}</div>
+          <img src="${track.cover}" class="track-thumb" />
+          <div class="track-meta">
+            <div class="track-name">${track.title}</div>
+            <div class="track-channel">${track.artist}</div>
           </div>
         `;
 
         row.addEventListener("click", () => {
-          loadTrack({
-            id: videoId,
-            title: cleanTitle,
-            artist: cleanChannel,
-            cover: highThumb
-          });
-          resultsList.classList.remove("active");
-          resultsList.innerHTML = "";
+          activeQueue = tracks;
+          queueIndex = idx;
+          loadTrack(track);
         });
 
-        resultsList.appendChild(row);
+        container.appendChild(row);
       });
-
-      resultsList.classList.add("active");
     }
 
-    // 3. Playback Management
+    // Playback Engine
     function loadTrack(track) {
       currentTrack = track;
       titleEl.textContent = track.title;
       artistEl.textContent = track.artist;
       coverEl.style.backgroundImage = `url(${track.cover})`;
+      coverGlowEl.style.backgroundImage = `url(${track.cover})`;
+
+      updateHeartState();
 
       if (player && player.loadVideoById) {
         player.loadVideoById(track.id);
       }
 
-      // Update mobile background audio info
+      // Sync Native Mobile Media Notifications
       if ("mediaSession" in navigator) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: track.title,
@@ -409,6 +618,8 @@
         });
         navigator.mediaSession.setActionHandler("play", togglePlay);
         navigator.mediaSession.setActionHandler("pause", togglePlay);
+        navigator.mediaSession.setActionHandler("previoustrack", playPrevTrack);
+        navigator.mediaSession.setActionHandler("nexttrack", playNextTrack);
         navigator.mediaSession.setActionHandler("seekbackward", () => skip(-10));
         navigator.mediaSession.setActionHandler("seekforward", () => skip(10));
       }
@@ -423,13 +634,29 @@
       }
     }
 
+    function playNextTrack() {
+      if (activeQueue.length === 0) return;
+      queueIndex = (queueIndex + 1) % activeQueue.length;
+      loadTrack(activeQueue[queueIndex]);
+    }
+
+    function playPrevTrack() {
+      if (activeQueue.length === 0) return;
+      if (player && player.getCurrentTime && player.getCurrentTime() > 3) {
+        player.seekTo(0, true);
+        return;
+      }
+      queueIndex = (queueIndex - 1 + activeQueue.length) % activeQueue.length;
+      loadTrack(activeQueue[queueIndex]);
+    }
+
     function skip(seconds) {
       if (!player || !player.getCurrentTime) return;
       const target = Math.max(0, player.getCurrentTime() + seconds);
       player.seekTo(target, true);
     }
 
-    // 4. Progress and Seeking
+    // Progress & Scrubbing
     function formatTime(sec) {
       if (isNaN(sec)) return "0:00";
       const m = Math.floor(sec / 60);
@@ -461,15 +688,71 @@
       player.seekTo(targetSec, true);
     });
 
+    // Favorites Management
+    function updateHeartState() {
+      if (!currentTrack) {
+        heartBtn.classList.remove("active");
+        return;
+      }
+      const isFav = favorites.some(t => t.id === currentTrack.id);
+      if (isFav) {
+        heartBtn.classList.add("active");
+      } else {
+        heartBtn.classList.remove("active");
+      }
+    }
+
+    heartBtn.addEventListener("click", () => {
+      if (!currentTrack) return;
+      const index = favorites.findIndex(t => t.id === currentTrack.id);
+      if (index > -1) {
+        favorites.splice(index, 1);
+      } else {
+        favorites.push(currentTrack);
+      }
+      localStorage.setItem("aura_music_favs", JSON.stringify(favorites));
+      updateHeartState();
+      updateFavTabLabel();
+      renderTrackList(favoritesList, favorites);
+    });
+
+    function updateFavTabLabel() {
+      tabFavorites.textContent = `Favorites (${favorites.length})`;
+    }
+
+    // Tab Switching
+    function switchTab(tab) {
+      if (tab === "results") {
+        tabResults.classList.add("active");
+        tabFavorites.classList.remove("active");
+        resultsList.classList.add("show");
+        favoritesList.classList.remove("show");
+      } else {
+        tabFavorites.classList.add("active");
+        tabResults.classList.remove("active");
+        favoritesList.classList.add("show");
+        resultsList.classList.remove("show");
+        renderTrackList(favoritesList, favorites);
+      }
+    }
+
+    tabResults.addEventListener("click", () => switchTab("results"));
+    tabFavorites.addEventListener("click", () => switchTab("favorites"));
+
     // Event Listeners
-    searchBtn.addEventListener("click", searchYouTube);
+    searchBtn.addEventListener("click", handleSearch);
     searchInput.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") searchYouTube();
+      if (e.key === "Enter") handleSearch();
     });
 
     playBtn.addEventListener("click", togglePlay);
+    nextBtn.addEventListener("click", playNextTrack);
+    prevBtn.addEventListener("click", playPrevTrack);
     rewindBtn.addEventListener("click", () => skip(-10));
     forwardBtn.addEventListener("click", () => skip(10));
+
+    // Boot
+    updateFavTabLabel();
   </script>
 </body>
 </html>
