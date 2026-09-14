@@ -61,7 +61,6 @@
       gap: 12px;
       position: relative;
     }
-    /* Top bar */
     .top-bar { display: flex; gap: 8px; align-items: center; }
     .search-bar {
       flex: 1; display: flex; gap: 6px;
@@ -83,7 +82,7 @@
     .btn-action:active, .btn-icon:active { transform: scale(0.94); }
     .btn-icon { background: var(--surface); color: var(--text); border: 1px solid var(--card-border); width: 42px; height: 42px; padding: 0; }
     .btn-icon svg { width: 18px; height: 18px; }
-    /* Tabs */
+    
     .tabs { display: flex; gap: 4px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding-bottom: 2px; }
     .tabs::-webkit-scrollbar { display: none; }
     .tab-btn {
@@ -96,7 +95,7 @@
       content: ""; position: absolute; bottom: -2px; left: 8px; right: 8px;
       height: 2px; background: var(--accent); border-radius: 2px;
     }
-    /* Lists */
+
     .list-container {
       max-height: 160px; overflow-y: auto; background: var(--surface);
       border-radius: 14px; border: 1px solid var(--card-border);
@@ -118,9 +117,8 @@
       background: none; border: none; color: var(--text-muted); padding: 6px;
       border-radius: 8px; cursor: pointer;
     }
-    .track-actions button:active { color: var(--accent); background: rgba(56,189,248,0.1); }
     .empty-state { padding: 20px 12px; font-size: 0.8rem; color: var(--text-muted); text-align: center; }
-    /* Cover */
+
     .cover-wrapper {
       position: relative; width: 200px; height: 200px; margin: 4px auto 6px;
       display: flex; justify-content: center; align-items: center;
@@ -137,7 +135,7 @@
       transition: transform 0.35s ease, background-image 0.4s ease;
     }
     .cover-art.playing { transform: scale(1.04); }
-    /* Visualizer */
+
     .viz {
       position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
       display: flex; gap: 3px; align-items: flex-end; height: 18px; z-index: 3; opacity: 0;
@@ -154,7 +152,7 @@
     .viz span:nth-child(4) { height: 15px; animation-delay: 0.1s; }
     .viz span:nth-child(5) { height: 7px; animation-delay: 0.25s; }
     @keyframes bounce { to { height: 4px; } }
-    /* Track header */
+
     .track-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
     .track-desc { overflow: hidden; flex: 1; min-width: 0; }
     .current-title { font-size: 1.05rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -165,7 +163,7 @@
     }
     .btn-heart.active { color: var(--heart-active); }
     .btn-heart:active { transform: scale(1.25); }
-    /* Timeline */
+
     .timeline { width: 100%; display: flex; flex-direction: column; gap: 4px; }
     .time-stamps { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-muted); font-weight: 600; }
     input[type="range"] {
@@ -177,11 +175,11 @@
       -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
       background: var(--accent); box-shadow: 0 0 10px var(--accent-glow); cursor: pointer;
     }
-    /* Volume row */
+
     .vol-row { display: flex; align-items: center; gap: 10px; padding: 0 2px; }
     .vol-row svg { width: 18px; height: 18px; color: var(--text-muted); flex-shrink: 0; }
     .vol-slider { flex: 1; }
-    /* Controls */
+
     .playback-controls {
       display: flex; justify-content: center; align-items: center; gap: 14px; margin-top: 2px;
     }
@@ -197,7 +195,7 @@
     }
     .btn-play:active { background: #7dd3fc; }
     .mode-btn.active { color: var(--accent); }
-    /* Extra row */
+
     .extra-row {
       display: flex; justify-content: space-around; align-items: center;
       gap: 6px; padding-top: 4px; border-top: 1px solid var(--card-border);
@@ -209,7 +207,7 @@
     }
     .extra-btn svg { width: 18px; height: 18px; }
     .extra-btn.active, .extra-btn:active { color: var(--accent); }
-    /* Bottom sheets / modals */
+
     .sheet-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 90;
       display: none; align-items: flex-end; justify-content: center;
@@ -237,8 +235,7 @@
       background: var(--surface); border: 1px solid var(--card-border);
       font-size: 0.78rem; color: var(--text); cursor: pointer;
     }
-    .history-chip:active { border-color: var(--accent); color: var(--accent); }
-    /* Toast */
+
     .toast {
       position: fixed; bottom: calc(24px + var(--safe-bottom)); left: 50%; transform: translateX(-50%) translateY(80px);
       background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text);
@@ -261,7 +258,6 @@
   <div class="player-container">
     <div class="sleep-badge" id="sleep-badge">Sleep 15m</div>
 
-    <!-- Top search + actions -->
     <div class="top-bar">
       <div class="search-bar">
         <input type="text" id="search-input" class="search-input" placeholder="Search any song..." autocomplete="off" />
@@ -275,7 +271,6 @@
       </button>
     </div>
 
-    <!-- Tabs -->
     <div class="tabs">
       <button class="tab-btn active" data-tab="results">Results</button>
       <button class="tab-btn" data-tab="queue">Queue <span id="queue-count">(0)</span></button>
@@ -290,14 +285,12 @@
     <div id="recent-list" class="list-container"></div>
     <div id="playlists-list" class="list-container"></div>
 
-    <!-- Cover -->
     <div class="cover-wrapper">
       <div id="cover-glow" class="cover-glow"></div>
       <div id="cover" class="cover-art"></div>
       <div class="viz" id="viz"><span></span><span></span><span></span><span></span><span></span></div>
     </div>
 
-    <!-- Title + heart -->
     <div class="track-header">
       <div class="track-desc">
         <div id="title" class="current-title">Ready to stream</div>
@@ -308,7 +301,6 @@
       </button>
     </div>
 
-    <!-- Timeline -->
     <div class="timeline">
       <input type="range" id="seek-bar" value="0" min="0" max="100" step="0.1" />
       <div class="time-stamps">
@@ -317,7 +309,6 @@
       </div>
     </div>
 
-    <!-- Volume -->
     <div class="vol-row">
       <button class="btn-ctrl" id="mute-btn" style="width:36px;height:36px" title="Mute">
         <svg id="vol-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
@@ -325,7 +316,6 @@
       <input type="range" id="vol-bar" class="vol-slider" value="80" min="0" max="100" step="1" />
     </div>
 
-    <!-- Main controls -->
     <div class="playback-controls">
       <button class="btn-ctrl mode-btn" id="shuffle-btn" title="Shuffle">
         <svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
@@ -344,7 +334,6 @@
       </button>
     </div>
 
-    <!-- Extra actions -->
     <div class="extra-row">
       <button class="extra-btn" id="rewind-btn"><svg viewBox="0 0 24 24"><path d="M11.99 5V1l-5 5 5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6h-2c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg><span>-10s</span></button>
       <button class="extra-btn" id="forward-btn"><svg viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z"/></svg><span>+10s</span></button>
@@ -353,10 +342,8 @@
     </div>
   </div>
 
-  <!-- Native HTML5 Background Audio Engine (No Ads) -->
   <audio id="native-audio" preload="auto" playsinline></audio>
 
-  <!-- Sheets -->
   <div class="sheet-overlay" id="menu-sheet">
     <div class="sheet">
       <div class="sheet-header"><div class="sheet-title">More options</div><button class="sheet-close" data-close>×</button></div>
@@ -397,26 +384,24 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    // Clean, direct audio API endpoints with automatic fallback
-    const API_MIRRORS = [
-      "https://saavn.dev/api",
-      "https://jiosaavn-api-privatecvc2.vercel.app",
-      "https://jiosavan-api.vercel.app"
+    // Live Endpoints with Multiple Fallbacks
+    const API_SOURCES = [
+      "https://saavn.dev/api/search/songs",
+      "https://jiosaavn-api-privatecvc2.vercel.app/api/search/songs",
+      "https://jiosaavn-api-eight-plum.vercel.app/api/search/songs"
     ];
 
     const audio = document.getElementById("native-audio");
     let isPlaying = false, progressTimer = null;
     let currentTrack = null, activeQueue = [], queueIndex = -1;
-    let shuffleOn = false, repeatMode = 0; // 0 off, 1 one, 2 all
+    let shuffleOn = false, repeatMode = 0;
     let favorites = JSON.parse(localStorage.getItem("aura_favs") || "[]");
     let recent = JSON.parse(localStorage.getItem("aura_recent") || "[]");
     let playlists = JSON.parse(localStorage.getItem("aura_playlists") || "{}");
     let searchHistory = JSON.parse(localStorage.getItem("aura_history") || "[]");
     let volume = parseInt(localStorage.getItem("aura_vol") || "80");
     let isMuted = false, sleepEnd = 0;
-    let pendingAddTrack = null;
 
-    // DOM
     const $ = id => document.getElementById(id);
     const searchInput = $("search-input"), searchBtn = $("search-btn");
     const resultsList = $("results-list"), queueList = $("queue-list");
@@ -430,7 +415,6 @@
 
     audio.volume = volume / 100;
 
-    // Direct background audio listeners
     audio.addEventListener("play", () => {
       isPlaying = true;
       setPlayIcon(false);
@@ -463,68 +447,93 @@
     }
 
     function decodeHtml(html) {
-      const t = document.createElement("textarea"); t.innerHTML = html; return t.value;
+      const t = document.createElement("textarea");
+      t.innerHTML = html || "";
+      return t.value;
     }
+
     function toast(msg) {
-      toastEl.textContent = msg; toastEl.classList.add("show");
+      toastEl.textContent = msg;
+      toastEl.classList.add("show");
       setTimeout(() => toastEl.classList.remove("show"), 2200);
     }
+
     function formatTime(sec) {
       if (isNaN(sec)) return "0:00";
       const m = Math.floor(sec / 60), s = Math.floor(sec % 60);
       return `${m}:${s < 10 ? "0" : ""}${s}`;
     }
 
-    // Direct Search & Stream Fetcher
+    // Comprehensive audio stream parser supporting all schema variations
+    function extractBestAudioUrl(item) {
+      if (Array.isArray(item.downloadUrl) && item.downloadUrl.length > 0) {
+        const sorted = [...item.downloadUrl].sort((a, b) => {
+          const qA = parseInt(a.quality) || 0;
+          const qB = parseInt(b.quality) || 0;
+          return qB - qA;
+        });
+        return sorted[0].url || sorted[0].link;
+      }
+      if (Array.isArray(item.download_url) && item.download_url.length > 0) {
+        return item.download_url[item.download_url.length - 1].url;
+      }
+      if (typeof item.media_url === "string") return item.media_url;
+      if (typeof item.url === "string" && item.url.includes(".mp4")) return item.url;
+      return null;
+    }
+
+    function extractBestCover(item) {
+      if (Array.isArray(item.image) && item.image.length > 0) {
+        return item.image[item.image.length - 1].url || item.image[0].url;
+      }
+      if (typeof item.image === "string") return item.image;
+      return "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400";
+    }
+
+    function extractArtists(item) {
+      if (item.artists?.primary && Array.isArray(item.artists.primary)) {
+        return item.artists.primary.map(a => a.name).join(", ");
+      }
+      if (item.primaryArtists) return item.primaryArtists;
+      if (item.artist) return item.artist;
+      return "Various Artists";
+    }
+
+    // Multi-Mirror Search
     async function searchTracks(query) {
-      for (const base of API_MIRRORS) {
+      for (const endpoint of API_SOURCES) {
         try {
-          const endpoint = base.includes("saavn.dev") 
-            ? `${base}/search/songs?query=${encodeURIComponent(query)}&page=1&limit=15`
-            : `${base}/search?query=${encodeURIComponent(query)}`;
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), 6000);
           
-          const res = await fetch(endpoint);
-          const data = await res.json();
-          const list = data?.data?.results || data?.results || (Array.isArray(data?.data) ? data.data : []);
+          const res = await fetch(`${endpoint}?query=${encodeURIComponent(query)}&page=1&limit=15`, {
+            signal: controller.signal
+          });
+          clearTimeout(timer);
+
+          if (!res.ok) continue;
+          const json = await res.json();
           
-          if (list && list.length > 0) {
-            return list.map(item => {
-              // Extract highest quality image
-              let coverUrl = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400";
-              if (Array.isArray(item.image) && item.image.length > 0) {
-                coverUrl = item.image[item.image.length - 1].url || item.image[0].url;
-              } else if (typeof item.image === "string") {
-                coverUrl = item.image;
-              }
+          const rawItems = json?.data?.results || json?.results || (Array.isArray(json?.data) ? json.data : null);
+          if (!rawItems || !rawItems.length) continue;
 
-              // Extract highest quality audio stream (320kbps / 160kbps)
-              let audioUrl = "";
-              if (Array.isArray(item.downloadUrl) && item.downloadUrl.length > 0) {
-                audioUrl = item.downloadUrl[item.downloadUrl.length - 1].url || item.downloadUrl[0].url;
-              } else if (item.media_url) {
-                audioUrl = item.media_url;
-              }
-
-              // Extract artist names
-              let artists = "Unknown Artist";
-              if (item.artists?.primary && Array.isArray(item.artists.primary)) {
-                artists = item.artists.primary.map(a => a.name).join(", ");
-              } else if (item.primaryArtists) {
-                artists = item.primaryArtists;
-              } else if (item.artist) {
-                artists = item.artist;
-              }
-
-              return {
-                id: item.id,
+          const parsed = [];
+          for (const item of rawItems) {
+            const stream = extractBestAudioUrl(item);
+            if (stream) {
+              parsed.push({
+                id: item.id || Math.random().toString(36).substring(7),
                 title: decodeHtml(item.name || item.song || item.title || "Track"),
-                artist: decodeHtml(artists),
-                cover: coverUrl,
-                streamUrl: audioUrl
-              };
-            }).filter(track => track.streamUrl);
+                artist: decodeHtml(extractArtists(item)),
+                cover: extractBestCover(item),
+                streamUrl: stream
+              });
+            }
           }
-        } catch (err) {
+
+          if (parsed.length > 0) return parsed;
+        } catch (e) {
+          // Fall through to next mirror
           continue;
         }
       }
@@ -545,15 +554,16 @@
       try {
         const items = await searchTracks(query);
         if (!items.length) {
-          toast("No playable songs found");
+          toast("No playable songs found. Try another query.");
           return;
         }
-        activeQueue = items; queueIndex = -1;
+        activeQueue = items;
+        queueIndex = -1;
         renderTrackList(resultsList, items, "results");
         switchTab("results");
         updateQueueCount();
       } catch (err) {
-        toast("Search failed");
+        toast("Search timed out. Please try again.");
       } finally {
         searchBtn.innerHTML = "<span>Find</span>";
       }
@@ -650,9 +660,8 @@
       coverGlowEl.style.backgroundImage = `url(${track.cover})`;
       updateHeartState();
 
-      // Set direct audio URL to HTML5 Audio Player
       audio.src = track.streamUrl;
-      audio.play().catch(e => console.log("User action needed for autoplay"));
+      audio.play().catch(e => console.log("User action needed for autoplay:", e));
 
       if (addToRecent) {
         recent = recent.filter(t => t.id !== track.id);
@@ -661,7 +670,7 @@
         localStorage.setItem("aura_recent", JSON.stringify(recent));
       }
 
-      // Mobile Lock Screen & Media Controls
+      // Native lock screen media session controls
       if ("mediaSession" in navigator) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: track.title, 
@@ -716,7 +725,6 @@
       toast("Added to queue");
     }
 
-    // Progress
     function startProgressTracking() {
       stopProgressTracking();
       progressTimer = setInterval(() => {
@@ -739,7 +747,6 @@
       audio.currentTime = (seekBar.value / 100) * audio.duration;
     });
 
-    // Volume
     volBar.value = volume;
     volBar.addEventListener("input", () => {
       volume = +volBar.value; isMuted = false;
@@ -758,7 +765,6 @@
         : `<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>`;
     }
 
-    // Shuffle / Repeat
     shuffleBtn.onclick = () => {
       shuffleOn = !shuffleOn;
       shuffleBtn.classList.toggle("active", shuffleOn);
@@ -771,7 +777,6 @@
       toast(labels[repeatMode]);
     };
 
-    // Favorites
     function updateHeartState() {
       if (!currentTrack) { heartBtn.classList.remove("active"); return; }
       heartBtn.classList.toggle("active", favorites.some(t => t.id === currentTrack.id));
@@ -789,7 +794,6 @@
     function updateFavCount() { $("fav-count").textContent = `(${favorites.length})`; }
     function updateQueueCount() { $("queue-count").textContent = `(${activeQueue.length})`; }
 
-    // Tabs
     function switchTab(tab) {
       document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
       [resultsList, queueList, favoritesList, recentList, playlistsList].forEach(l => l.classList.remove("show"));
@@ -801,7 +805,6 @@
     }
     document.querySelectorAll(".tab-btn").forEach(b => b.addEventListener("click", () => switchTab(b.dataset.tab)));
 
-    // Sheets
     function openSheet(id) { $(id).classList.add("show"); }
     function closeSheets() { document.querySelectorAll(".sheet-overlay").forEach(s => s.classList.remove("show")); }
     document.querySelectorAll("[data-close]").forEach(b => b.onclick = closeSheets);
@@ -817,7 +820,6 @@
     };
     if (localStorage.getItem("aura_theme") === "light") document.documentElement.setAttribute("data-theme", "light");
 
-    // Sleep
     document.querySelectorAll("[data-sleep]").forEach(btn => {
       btn.onclick = () => {
         const mins = +btn.dataset.sleep;
@@ -833,14 +835,12 @@
     });
     function clearSleep() { sleepEnd = 0; sleepBadge.classList.remove("show"); }
 
-    // Lyrics
     $("lyrics-btn").onclick = () => {
       if (!currentTrack) return toast("No track playing");
       const q = encodeURIComponent(currentTrack.title + " " + currentTrack.artist + " lyrics");
       window.open(`https://www.google.com/search?q=${q}`, "_blank");
     };
 
-    // Playlists
     $("create-playlist-btn").onclick = () => {
       const name = $("playlist-name").value.trim();
       if (!name) return toast("Enter a name");
@@ -851,7 +851,6 @@
       closeSheets(); renderPlaylists(); toast("Playlist created");
     };
     function openAddToPlaylist(track) {
-      pendingAddTrack = track;
       const box = $("add-playlist-options");
       box.innerHTML = "";
       const names = Object.keys(playlists);
@@ -873,7 +872,6 @@
       openSheet("add-to-playlist-sheet");
     }
 
-    // Export / Import
     $("export-btn").onclick = () => {
       const blob = new Blob([JSON.stringify(favorites, null, 2)], { type: "application/json" });
       const a = document.createElement("a");
@@ -899,7 +897,6 @@
     $("clear-recent-btn").onclick = () => { recent = []; localStorage.setItem("aura_recent", "[]"); toast("Recent cleared"); closeSheets(); };
     $("clear-queue-btn").onclick = () => { activeQueue = []; queueIndex = -1; updateQueueCount(); toast("Queue cleared"); closeSheets(); };
 
-    // Keyboard controls
     document.addEventListener("keydown", e => {
       if (e.target.tagName === "INPUT") return;
       if (e.code === "Space") { e.preventDefault(); togglePlay(); }
@@ -913,7 +910,6 @@
       else if (e.key === "/") { e.preventDefault(); searchInput.focus(); }
     });
 
-    // Events
     searchBtn.onclick = handleSearch;
     searchInput.onkeypress = e => { if (e.key === "Enter") handleSearch(); };
     $("play-btn").onclick = togglePlay;
@@ -922,7 +918,6 @@
     $("rewind-btn").onclick = () => skip(-10);
     $("forward-btn").onclick = () => skip(10);
 
-    // Boot
     updateFavCount(); updateQueueCount(); updateVolIcon();
 
     searchInput.addEventListener("focus", () => {
