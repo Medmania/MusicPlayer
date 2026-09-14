@@ -264,7 +264,7 @@
     <!-- Top search + actions -->
     <div class="top-bar">
       <div class="search-bar">
-        <input type="text" id="search-input" class="search-input" placeholder="Search or paste YT link..." autocomplete="off" />
+        <input type="text" id="search-input" class="search-input" placeholder="Search any song..." autocomplete="off" />
         <button class="btn-action" id="search-btn"><span>Find</span></button>
       </div>
       <button class="btn-icon" id="theme-btn" title="Theme">
@@ -301,7 +301,7 @@
     <div class="track-header">
       <div class="track-desc">
         <div id="title" class="current-title">Ready to stream</div>
-        <div id="artist" class="current-artist">Search any track to start</div>
+        <div id="artist" class="current-artist">Search any song to begin</div>
       </div>
       <button class="btn-heart" id="heart-btn" title="Favorite">
         <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
@@ -353,7 +353,7 @@
     </div>
   </div>
 
-  <!-- Native Background Audio Element (No YouTube iFrame ads) -->
+  <!-- Native HTML5 Background Audio Engine (No Ads) -->
   <audio id="native-audio" preload="auto" playsinline></audio>
 
   <!-- Sheets -->
@@ -397,15 +397,11 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    const YOUTUBE_API_KEY = "AIzaSyCJuQ8KoTdihisteVC-HB_APmNWqLofBoc";
-
-    // Public Invidious / Piped audio stream resolvers (ad-free)
-    const STREAM_INSTANCES = [
-      "https://pipedapi.kavin.rocks",
-      "https://api.piped.privacydev.net",
-      "https://pipedapi.leptons.xyz",
-      "https://inv.nadeko.net",
-      "https://invidious.nerdvpn.de"
+    // Clean, direct audio API endpoints with automatic fallback
+    const API_MIRRORS = [
+      "https://saavn.dev/api",
+      "https://jiosaavn-api-privatecvc2.vercel.app",
+      "https://jiosavan-api.vercel.app"
     ];
 
     const audio = document.getElementById("native-audio");
@@ -417,7 +413,7 @@
     let playlists = JSON.parse(localStorage.getItem("aura_playlists") || "{}");
     let searchHistory = JSON.parse(localStorage.getItem("aura_history") || "[]");
     let volume = parseInt(localStorage.getItem("aura_vol") || "80");
-    let isMuted = false, sleepTimer = null, sleepEnd = 0;
+    let isMuted = false, sleepEnd = 0;
     let pendingAddTrack = null;
 
     // DOM
@@ -432,9 +428,9 @@
     const shuffleBtn = $("shuffle-btn"), repeatBtn = $("repeat-btn");
     const viz = $("viz"), toastEl = $("toast"), sleepBadge = $("sleep-badge");
 
-    // Audio Event Listeners for True Background Playback
     audio.volume = volume / 100;
 
+    // Direct background audio listeners
     audio.addEventListener("play", () => {
       isPlaying = true;
       setPlayIcon(false);
@@ -466,10 +462,6 @@
         : `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`;
     }
 
-    function extractVideoId(input) {
-      const m = input.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
-      return m ? m[1] : null;
-    }
     function decodeHtml(html) {
       const t = document.createElement("textarea"); t.innerHTML = html; return t.value;
     }
@@ -483,75 +475,88 @@
       return `${m}:${s < 10 ? "0" : ""}${s}`;
     }
 
-    // Fetch ad-free audio stream URL
-    async function fetchDirectAudioUrl(videoId) {
-      for (const instance of STREAM_INSTANCES) {
+    // Direct Search & Stream Fetcher
+    async function searchTracks(query) {
+      for (const base of API_MIRRORS) {
         try {
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 4000);
+          const endpoint = base.includes("saavn.dev") 
+            ? `${base}/search/songs?query=${encodeURIComponent(query)}&page=1&limit=15`
+            : `${base}/search?query=${encodeURIComponent(query)}`;
           
-          if (instance.includes("pipedapi")) {
-            const res = await fetch(`${instance}/streams/${videoId}`, { signal: controller.signal });
-            clearTimeout(timeout);
-            const data = await res.json();
-            const streams = data.audioStreams || [];
-            if (streams.length > 0) {
-              // Pick highest bitrate audio stream
-              streams.sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0));
-              return streams[0].url;
-            }
-          } else {
-            // Invidious endpoint
-            const res = await fetch(`${instance}/api/v1/videos/${videoId}`, { signal: controller.signal });
-            clearTimeout(timeout);
-            const data = await res.json();
-            const formats = data.adaptiveFormats || [];
-            const audioFormats = formats.filter(f => f.type && f.type.startsWith("audio/"));
-            if (audioFormats.length > 0) {
-              audioFormats.sort((a, b) => (parseInt(b.bitrate) || 0) - (parseInt(a.bitrate) || 0));
-              return audioFormats[0].url;
-            }
+          const res = await fetch(endpoint);
+          const data = await res.json();
+          const list = data?.data?.results || data?.results || (Array.isArray(data?.data) ? data.data : []);
+          
+          if (list && list.length > 0) {
+            return list.map(item => {
+              // Extract highest quality image
+              let coverUrl = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400";
+              if (Array.isArray(item.image) && item.image.length > 0) {
+                coverUrl = item.image[item.image.length - 1].url || item.image[0].url;
+              } else if (typeof item.image === "string") {
+                coverUrl = item.image;
+              }
+
+              // Extract highest quality audio stream (320kbps / 160kbps)
+              let audioUrl = "";
+              if (Array.isArray(item.downloadUrl) && item.downloadUrl.length > 0) {
+                audioUrl = item.downloadUrl[item.downloadUrl.length - 1].url || item.downloadUrl[0].url;
+              } else if (item.media_url) {
+                audioUrl = item.media_url;
+              }
+
+              // Extract artist names
+              let artists = "Unknown Artist";
+              if (item.artists?.primary && Array.isArray(item.artists.primary)) {
+                artists = item.artists.primary.map(a => a.name).join(", ");
+              } else if (item.primaryArtists) {
+                artists = item.primaryArtists;
+              } else if (item.artist) {
+                artists = item.artist;
+              }
+
+              return {
+                id: item.id,
+                title: decodeHtml(item.name || item.song || item.title || "Track"),
+                artist: decodeHtml(artists),
+                cover: coverUrl,
+                streamUrl: audioUrl
+              };
+            }).filter(track => track.streamUrl);
           }
-        } catch (e) {
-          continue; // Try next mirror if this one fails
+        } catch (err) {
+          continue;
         }
       }
-      return null;
+      return [];
     }
 
-    // Search via YouTube Data API
     async function handleSearch() {
       const query = searchInput.value.trim();
       if (!query) return;
-      const directId = extractVideoId(query);
-      if (directId) {
-        loadTrack({ id: directId, title: "Streaming Track", artist: "Direct Link", cover: `https://img.youtube.com/vi/${directId}/hqdefault.jpg` }, true);
-        searchInput.value = ""; return;
-      }
 
       if (!searchHistory.includes(query)) {
         searchHistory.unshift(query);
         if (searchHistory.length > 12) searchHistory.pop();
         localStorage.setItem("aura_history", JSON.stringify(searchHistory));
       }
+
       searchBtn.innerHTML = "<span>...</span>";
       try {
-        const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=12&q=${encodeURIComponent(query)}&key=${YOUTUBE_API_KEY}`;
-        const res = await fetch(url);
-        const data = await res.json();
-        if (data.error) { toast(data.error.message || "API error"); return; }
-        const items = (data.items || []).map(item => ({
-          id: item.id.videoId,
-          title: decodeHtml(item.snippet.title),
-          artist: decodeHtml(item.snippet.channelTitle),
-          cover: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.default.url
-        }));
+        const items = await searchTracks(query);
+        if (!items.length) {
+          toast("No playable songs found");
+          return;
+        }
         activeQueue = items; queueIndex = -1;
         renderTrackList(resultsList, items, "results");
         switchTab("results");
         updateQueueCount();
-      } catch (err) { toast("Search failed"); console.error(err); }
-      finally { searchBtn.innerHTML = "<span>Find</span>"; }
+      } catch (err) {
+        toast("Search failed");
+      } finally {
+        searchBtn.innerHTML = "<span>Find</span>";
+      }
     }
 
     function renderTrackList(container, tracks, type) {
@@ -564,7 +569,7 @@
         const row = document.createElement("div");
         row.className = "track-row" + (currentTrack && currentTrack.id === track.id ? " active" : "");
         row.innerHTML = `
-          <img src="${track.cover}" class="track-thumb" loading="lazy" onerror="this.style.opacity=0.3" />
+          <img src="${track.cover}" class="track-thumb" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400'" />
           <div class="track-meta">
             <div class="track-name">${track.title}</div>
             <div class="track-channel">${track.artist}</div>
@@ -577,7 +582,6 @@
         row.querySelector("[data-act=plist]").onclick = (e) => { e.stopPropagation(); openAddToPlaylist(track); };
         row.onclick = () => {
           if (type === "queue") { queueIndex = idx; loadTrack(track); }
-          else if (type === "playlists") return;
           else { activeQueue = tracks; queueIndex = idx; loadTrack(track); updateQueueCount(); }
         };
         container.appendChild(row);
@@ -633,7 +637,12 @@
       });
     }
 
-    async function loadTrack(track, addToRecent = true) {
+    function loadTrack(track, addToRecent = true) {
+      if (!track || !track.streamUrl) {
+        toast("Stream unavailable");
+        return;
+      }
+
       currentTrack = track;
       titleEl.textContent = track.title;
       artistEl.textContent = track.artist;
@@ -641,17 +650,9 @@
       coverGlowEl.style.backgroundImage = `url(${track.cover})`;
       updateHeartState();
 
-      toast("Loading ad-free stream...");
-
-      const streamUrl = await fetchDirectAudioUrl(track.id);
-      if (!streamUrl) {
-        toast("Stream unavailable. Skipping...");
-        setTimeout(playNextTrack, 1500);
-        return;
-      }
-
-      audio.src = streamUrl;
-      audio.play().catch(e => console.log("User action required for autoplay:", e));
+      // Set direct audio URL to HTML5 Audio Player
+      audio.src = track.streamUrl;
+      audio.play().catch(e => console.log("User action needed for autoplay"));
 
       if (addToRecent) {
         recent = recent.filter(t => t.id !== track.id);
@@ -660,7 +661,7 @@
         localStorage.setItem("aura_recent", JSON.stringify(recent));
       }
 
-      // Sync Native Mobile Media Session for Lock Screen Controls
+      // Mobile Lock Screen & Media Controls
       if ("mediaSession" in navigator) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: track.title, 
