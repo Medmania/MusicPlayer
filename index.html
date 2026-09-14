@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clean Stream Player</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #151e2e;
+      --accent: #38bdf8;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #1e293b;
+      --card-inner: #0f172a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .app-container {
+      background: var(--card-bg);
+      width: 100%;
+      max-width: 420px;
+      padding: 24px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* Search Section */
+    .search-box {
+      display: flex;
+      gap: 8px;
+    }
+
+    .search-input {
+      flex: 1;
+      background: var(--card-inner);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 12px;
+      outline: none;
+      font-size: 0.9rem;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent);
+    }
+
+    .btn-search {
+      background: var(--accent);
+      border: none;
+      color: #000;
+      font-weight: 600;
+      padding: 0 16px;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    /* Results Dropdown/List */
+    .results-list {
+      max-height: 180px;
+      overflow-y: auto;
+      background: var(--card-inner);
+      border-radius: 12px;
+      display: none;
+      flex-direction: column;
+      border: 1px solid var(--border);
+    }
+
+    .results-list.active {
+      display: flex;
+    }
+
+    .result-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      transition: background 0.2s;
+    }
+
+    .result-item:hover {
+      background: rgba(56, 189, 248, 0.1);
+    }
+
+    .result-thumb {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+
+    .result-info {
+      overflow: hidden;
+      text-align: left;
+    }
+
+    .result-title {
+      font-size: 0.85rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-weight: 500;
+    }
+
+    .result-channel {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Player View */
+    .player-view {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .cover-art {
+      width: 220px;
+      height: 220px;
+      margin: 10px 0 16px;
+      border-radius: 16px;
+      background-size: cover;
+      background-position: center;
+      background-color: var(--card-inner);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+    }
+
+    .track-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .track-artist {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      margin-bottom: 16px;
+      width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .progress-container {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .btn {
+      background: none;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      transition: background 0.2s;
+    }
+
+    .btn:hover { background: rgba(255, 255, 255, 0.1); }
+    .btn-play { background: var(--accent); color: #000; width: 56px; height: 56px; font-size: 1.5rem; }
+    .btn-play:hover { background: #7dd3fc; }
+
+    /* Hidden YouTube iframe */
+    #yt-hidden-wrapper {
+      position: absolute;
+      top: -9999px;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Live Search -->
+    <div class="search-box">
+      <input type="text" id="search-input" class="search-input" placeholder="Search track or artist..." />
+      <button class="btn-search" id="search-btn">Find</button>
+    </div>
+
+    <!-- Search Results Container -->
+    <div id="results-list" class="results-list"></div>
+
+    <!-- Player Area -->
+    <div class="player-view">
+      <div id="cover" class="cover-art"></div>
+      <div id="title" class="track-title">Search a song above</div>
+      <div id="artist" class="track-artist">YouTube Stream</div>
+
+      <div class="progress-container">
+        <span id="current-time">0:00</span>
+        <input type="range" id="seek-bar" value="0" min="0" max="100" step="1" />
+        <span id="duration">0:00</span>
+      </div>
+
+      <div class="controls">
+        <button class="btn" id="rewind-btn">⏪</button>
+        <button class="btn btn-play" id="play-btn">▶</button>
+        <button class="btn" id="forward-btn">⏩</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Offscreen YouTube Player Target -->
+  <div id="yt-hidden-wrapper">
+    <div id="yt-player"></div>
+  </div>
+
+  <script>
+    // ================= CONFIGURATION =================
+    const YOUTUBE_API_KEY = "YOUR_API_KEY_HERE"; // <-- Paste your key here
+    // =================================================
+
+    let player = null;
+    let isPlaying = false;
+    let progressTimer = null;
+    let currentTrack = null;
+
+    // UI Elements
+    const searchInput = document.getElementById("search-input");
+    const searchBtn = document.getElementById("search-btn");
+    const resultsList = document.getElementById("results-list");
+    const titleEl = document.getElementById("title");
+    const artistEl = document.getElementById("artist");
+    const coverEl = document.getElementById("cover");
+    const playBtn = document.getElementById("play-btn");
+    const rewindBtn = document.getElementById("rewind-btn");
+    const forwardBtn = document.getElementById("forward-btn");
+    const seekBar = document.getElementById("seek-bar");
+    const currentTimeEl = document.getElementById("current-time");
+    const durationEl = document.getElementById("duration");
+
+    // 1. Load YouTube IFrame API
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.getElementsByTagName("head")[0].appendChild(tag);
+
+    window.onYouTubeIframeAPIReady = function () {
+      player = new YT.Player("yt-player", {
+        height: "200",
+        width: "200",
+        playerVars: {
+          playsinline: 1,
+          controls: 0,
+          disablekb: 1,
+          modestbranding: 1
+        },
+        events: {
+          onStateChange: onPlayerStateChange
+        }
+      });
+    };
+
+    function onPlayerStateChange(event) {
+      if (event.data === YT.PlayerState.PLAYING) {
+        isPlaying = true;
+        playBtn.textContent = "⏸";
+        startProgressTracking();
+      } else {
+        isPlaying = false;
+        playBtn.textContent = "▶";
+        stopProgressTracking();
+      }
+    }
+
+    // 2. Search Functionality via YouTube Data API
+    async function searchYouTube() {
+      const query = searchInput.value.trim();
+      if (!query) return;
+
+      if (YOUTUBE_API_KEY === "YOUR_API_KEY_HERE") {
+        alert("Please replace 'YOUR_API_KEY_HERE' in the script with your Google Cloud API key!");
+        return;
+      }
+
+      searchBtn.textContent = "...";
+
+      try {
+        const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=5&q=${encodeURIComponent(query)}&key=${YOUTUBE_API_KEY}`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.error) {
+          alert(`API Error: ${data.error.message}`);
+          return;
+        }
+
+        displayResults(data.items);
+      } catch (err) {
+        console.error("Search error:", err);
+      } finally {
+        searchBtn.textContent = "Find";
+      }
+    }
+
+    function decodeHtml(html) {
+      const txt = document.createElement("textarea");
+      txt.innerHTML = html;
+      return txt.value;
+    }
+
+    function displayResults(items) {
+      resultsList.innerHTML = "";
+      if (!items || items.length === 0) {
+        resultsList.classList.remove("active");
+        return;
+      }
+
+      items.forEach(item => {
+        const videoId = item.id.videoId;
+        const cleanTitle = decodeHtml(item.snippet.title);
+        const cleanChannel = decodeHtml(item.snippet.channelTitle);
+        const thumbUrl = item.snippet.thumbnails.default.url;
+        const highThumb = item.snippet.thumbnails.high ? item.snippet.thumbnails.high.url : thumbUrl;
+
+        const row = document.createElement("div");
+        row.className = "result-item";
+        row.innerHTML = `
+          <img src="${thumbUrl}" class="result-thumb" />
+          <div class="result-info">
+            <div class="result-title">${cleanTitle}</div>
+            <div class="result-channel">${cleanChannel}</div>
+          </div>
+        `;
+
+        row.addEventListener("click", () => {
+          loadTrack({
+            id: videoId,
+            title: cleanTitle,
+            artist: cleanChannel,
+            cover: highThumb
+          });
+          resultsList.classList.remove("active");
+          resultsList.innerHTML = "";
+        });
+
+        resultsList.appendChild(row);
+      });
+
+      resultsList.classList.add("active");
+    }
+
+    // 3. Playback Management
+    function loadTrack(track) {
+      currentTrack = track;
+      titleEl.textContent = track.title;
+      artistEl.textContent = track.artist;
+      coverEl.style.backgroundImage = `url(${track.cover})`;
+
+      if (player && player.loadVideoById) {
+        player.loadVideoById(track.id);
+      }
+
+      // Update mobile background audio info
+      if ("mediaSession" in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: track.title,
+          artist: track.artist,
+          artwork: [{ src: track.cover, sizes: "512x512", type: "image/png" }]
+        });
+        navigator.mediaSession.setActionHandler("play", togglePlay);
+        navigator.mediaSession.setActionHandler("pause", togglePlay);
+        navigator.mediaSession.setActionHandler("seekbackward", () => skip(-10));
+        navigator.mediaSession.setActionHandler("seekforward", () => skip(10));
+      }
+    }
+
+    function togglePlay() {
+      if (!player) return;
+      if (isPlaying) {
+        player.pauseVideo();
+      } else {
+        player.playVideo();
+      }
+    }
+
+    function skip(seconds) {
+      if (!player || !player.getCurrentTime) return;
+      const target = Math.max(0, player.getCurrentTime() + seconds);
+      player.seekTo(target, true);
+    }
+
+    // 4. Progress and Seeking
+    function formatTime(sec) {
+      if (isNaN(sec)) return "0:00";
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return `${m}:${s < 10 ? "0" : ""}${s}`;
+    }
+
+    function startProgressTracking() {
+      stopProgressTracking();
+      progressTimer = setInterval(() => {
+        if (!player || !player.getCurrentTime) return;
+        const cur = player.getCurrentTime();
+        const dur = player.getDuration();
+        if (dur > 0) {
+          seekBar.value = (cur / dur) * 100;
+          currentTimeEl.textContent = formatTime(cur);
+          durationEl.textContent = formatTime(dur);
+        }
+      }, 500);
+    }
+
+    function stopProgressTracking() {
+      clearInterval(progressTimer);
+    }
+
+    seekBar.addEventListener("input", () => {
+      if (!player || !player.getDuration) return;
+      const targetSec = (seekBar.value / 100) * player.getDuration();
+      player.seekTo(targetSec, true);
+    });
+
+    // Event Listeners
+    searchBtn.addEventListener("click", searchYouTube);
+    searchInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") searchYouTube();
+    });
+
+    playBtn.addEventListener("click", togglePlay);
+    rewindBtn.addEventListener("click", () => skip(-10));
+    forwardBtn.addEventListener("click", () => skip(10));
+  </script>
+</body>
+</html>
