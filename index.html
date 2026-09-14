@@ -13,7 +13,7 @@
   <style>
     :root {
       --bg: #07090e;
-      --card-bg: rgba(22, 27, 38, 0.85);
+      --card-bg: rgba(22, 27, 38, 0.88);
       --card-border: rgba(255, 255, 255, 0.08);
       --accent: #38bdf8;
       --accent-glow: rgba(56, 189, 248, 0.35);
@@ -25,7 +25,7 @@
     }
     [data-theme="light"] {
       --bg: #f1f5f9;
-      --card-bg: rgba(255, 255, 255, 0.9);
+      --card-bg: rgba(255, 255, 255, 0.92);
       --card-border: rgba(0, 0, 0, 0.08);
       --accent: #0ea5e9;
       --accent-glow: rgba(14, 165, 233, 0.3);
@@ -252,6 +252,18 @@
       display: none;
     }
     .sleep-badge.show { display: block; }
+
+    /* Hidden YouTube Official Player Iframe */
+    #yt-hidden-wrapper {
+      position: absolute;
+      top: -9999px;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
@@ -342,8 +354,10 @@
     </div>
   </div>
 
-  <!-- Native HTML5 audio for pure background playback -->
-  <audio id="native-audio" preload="auto" playsinline></audio>
+  <!-- Official YouTube Iframe Host -->
+  <div id="yt-hidden-wrapper">
+    <div id="yt-player"></div>
+  </div>
 
   <div class="sheet-overlay" id="menu-sheet">
     <div class="sheet">
@@ -389,15 +403,7 @@
     const YOUTUBE_API_KEY = "AIzaSyCJuQ8KoTdihisteVC-HB_APmNWqLofBoc";
     // =================================================
 
-    // Direct High-Speed CORS Audio Gateways
-    const AUDIO_GATEWAYS = [
-      (id) => `https://yt-stream.xyz/api/audio/${id}`,
-      (id) => `https://invidious.jing.rocks/latest_version?id=${id}&itag=140`,
-      (id) => `https://inv.nadeko.net/latest_version?id=${id}&itag=140`,
-      (id) => `https://yt.drgnz.club/latest_version?id=${id}&itag=140`
-    ];
-
-    const audio = document.getElementById("native-audio");
+    let player = null;
     let isPlaying = false, progressTimer = null;
     let currentTrack = null, activeQueue = [], queueIndex = -1;
     let shuffleOn = false, repeatMode = 0;
@@ -407,7 +413,6 @@
     let searchHistory = JSON.parse(localStorage.getItem("aura_history") || "[]");
     let volume = parseInt(localStorage.getItem("aura_vol") || "80");
     let isMuted = false, sleepEnd = 0;
-    let gatewayIndex = 0;
 
     const $ = id => document.getElementById(id);
     const searchInput = $("search-input"), searchBtn = $("search-btn");
@@ -420,47 +425,56 @@
     const shuffleBtn = $("shuffle-btn"), repeatBtn = $("repeat-btn");
     const viz = $("viz"), toastEl = $("toast"), sleepBadge = $("sleep-badge");
 
-    audio.volume = volume / 100;
+    // Load YouTube Official IFrame API
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(tag);
 
-    // True Background Playback Handlers
-    audio.addEventListener("play", () => {
-      isPlaying = true;
-      setPlayIcon(false);
-      coverEl.classList.add("playing");
-      viz.classList.add("show");
-      startProgressTracking();
-    });
+    window.onYouTubeIframeAPIReady = function () {
+      player = new YT.Player("yt-player", {
+        height: "200",
+        width: "200",
+        playerVars: {
+          playsinline: 1,
+          controls: 0,
+          disablekb: 1,
+          modestbranding: 1,
+          rel: 0,
+          iv_load_policy: 3
+        },
+        events: {
+          onReady: () => {
+            if (player.setVolume) player.setVolume(volume);
+          },
+          onStateChange: onPlayerStateChange
+        }
+      });
+    };
 
-    audio.addEventListener("pause", () => {
-      isPlaying = false;
-      setPlayIcon(true);
-      coverEl.classList.remove("playing");
-      viz.classList.remove("show");
-      stopProgressTracking();
-    });
-
-    audio.addEventListener("ended", () => {
-      if (repeatMode === 1) {
-        audio.currentTime = 0;
-        audio.play();
+    function onPlayerStateChange(event) {
+      if (event.data === YT.PlayerState.PLAYING) {
+        isPlaying = true;
+        setPlayIcon(false);
+        coverEl.classList.add("playing");
+        viz.classList.add("show");
+        startProgressTracking();
       } else {
-        playNextTrack();
+        isPlaying = false;
+        setPlayIcon(true);
+        coverEl.classList.remove("playing");
+        viz.classList.remove("show");
+        stopProgressTracking();
       }
-    });
 
-    // Automatic Stream Fallback if a specific proxy instance is slow or down
-    audio.addEventListener("error", () => {
-      if (!currentTrack) return;
-      gatewayIndex++;
-      if (gatewayIndex < AUDIO_GATEWAYS.length) {
-        console.warn("Switching to audio mirror", gatewayIndex);
-        audio.src = AUDIO_GATEWAYS[gatewayIndex](currentTrack.id);
-        audio.play().catch(() => {});
-      } else {
-        toast("Stream error: skipping track");
-        setTimeout(playNextTrack, 1500);
+      if (event.data === YT.PlayerState.ENDED) {
+        if (repeatMode === 1) {
+          player.seekTo(0, true);
+          player.playVideo();
+        } else {
+          playNextTrack();
+        }
       }
-    });
+    }
 
     function setPlayIcon(showPlay) {
       playIcon.innerHTML = showPlay
@@ -491,7 +505,7 @@
       return m ? m[1] : null;
     }
 
-    // Google-Authorized YouTube Search
+    // YouTube API Search
     async function handleSearch() {
       const query = searchInput.value.trim();
       if (!query) return;
@@ -500,8 +514,8 @@
       if (directId) {
         loadTrack({
           id: directId,
-          title: "Custom Stream",
-          artist: "Direct Link",
+          title: "Direct Video Stream",
+          artist: "YouTube",
           cover: `https://img.youtube.com/vi/${directId}/hqdefault.jpg`
         });
         searchInput.value = "";
@@ -516,7 +530,7 @@
 
       searchBtn.innerHTML = "<span>...</span>";
       try {
-        const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=10&q=${encodeURIComponent(query)}&key=${YOUTUBE_API_KEY}`;
+        const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=12&q=${encodeURIComponent(query)}&key=${YOUTUBE_API_KEY}`;
         const res = await fetch(url);
         const data = await res.json();
 
@@ -629,18 +643,15 @@
 
     function loadTrack(track, addToRecent = true) {
       currentTrack = track;
-      gatewayIndex = 0;
       titleEl.textContent = track.title;
       artistEl.textContent = track.artist;
       coverEl.style.backgroundImage = `url(${track.cover})`;
       coverGlowEl.style.backgroundImage = `url(${track.cover})`;
       updateHeartState();
 
-      toast("Streaming ad-free...");
-
-      // Point audio element directly to stream gateway
-      audio.src = AUDIO_GATEWAYS[gatewayIndex](track.id);
-      audio.play().catch(() => {});
+      if (player && player.loadVideoById) {
+        player.loadVideoById(track.id);
+      }
 
       if (addToRecent) {
         recent = recent.filter(t => t.id !== track.id);
@@ -649,7 +660,7 @@
         localStorage.setItem("aura_recent", JSON.stringify(recent));
       }
 
-      // Native Lock Screen & Notification Bar Media Session
+      // Mobile Lock-Screen Controls
       if ("mediaSession" in navigator) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: track.title, 
@@ -666,11 +677,11 @@
     }
 
     function togglePlay() {
-      if (!audio.src) return;
-      if (audio.paused) {
-        audio.play();
+      if (!player) return;
+      if (isPlaying) {
+        player.pauseVideo();
       } else {
-        audio.pause();
+        player.playVideo();
       }
     }
 
@@ -680,21 +691,27 @@
         queueIndex = Math.floor(Math.random() * activeQueue.length);
       } else {
         queueIndex = (queueIndex + 1) % activeQueue.length;
-        if (queueIndex === 0 && repeatMode !== 2 && !shuffleOn) { audio.pause(); return; }
+        if (queueIndex === 0 && repeatMode !== 2 && !shuffleOn) {
+          player.pauseVideo();
+          return;
+        }
       }
       loadTrack(activeQueue[queueIndex]);
     }
 
     function playPrevTrack() {
       if (!activeQueue.length) return;
-      if (audio.currentTime > 3) { audio.currentTime = 0; return; }
+      if (player && player.getCurrentTime && player.getCurrentTime() > 3) {
+        player.seekTo(0, true);
+        return;
+      }
       queueIndex = (queueIndex - 1 + activeQueue.length) % activeQueue.length;
       loadTrack(activeQueue[queueIndex]);
     }
 
     function skip(sec) {
-      if (!audio.duration) return;
-      audio.currentTime = Math.max(0, Math.min(audio.currentTime + sec, audio.duration));
+      if (!player || !player.getCurrentTime) return;
+      player.seekTo(Math.max(0, player.getCurrentTime() + sec), true);
     }
 
     function addToQueue(track) {
@@ -707,14 +724,18 @@
     function startProgressTracking() {
       stopProgressTracking();
       progressTimer = setInterval(() => {
-        const cur = audio.currentTime, dur = audio.duration;
+        if (!player || !player.getCurrentTime) return;
+        const cur = player.getCurrentTime();
+        const dur = player.getDuration();
         if (dur > 0) {
           seekBar.value = (cur / dur) * 100;
           currentTimeEl.textContent = formatTime(cur);
           durationEl.textContent = formatTime(dur);
         }
         if (sleepEnd && Date.now() >= sleepEnd) {
-          audio.pause(); clearSleep(); toast("Sleep timer ended");
+          player.pauseVideo();
+          clearSleep();
+          toast("Sleep timer ended");
         }
       }, 400);
     }
@@ -722,20 +743,21 @@
     function stopProgressTracking() { clearInterval(progressTimer); }
     
     seekBar.addEventListener("input", () => {
-      if (!audio.duration) return;
-      audio.currentTime = (seekBar.value / 100) * audio.duration;
+      if (!player || !player.getDuration) return;
+      player.seekTo((seekBar.value / 100) * player.getDuration(), true);
     });
 
     volBar.value = volume;
     volBar.addEventListener("input", () => {
-      volume = +volBar.value; isMuted = false;
-      audio.volume = volume / 100;
+      volume = +volBar.value;
+      isMuted = false;
+      if (player && player.setVolume) player.setVolume(volume);
       localStorage.setItem("aura_vol", volume);
       updateVolIcon();
     });
     muteBtn.onclick = () => {
       isMuted = !isMuted;
-      audio.volume = isMuted ? 0 : volume / 100;
+      if (player && player.setVolume) player.setVolume(isMuted ? 0 : volume);
       updateVolIcon();
     };
     function updateVolIcon() {
@@ -881,8 +903,8 @@
       if (e.code === "Space") { e.preventDefault(); togglePlay(); }
       else if (e.code === "ArrowLeft") skip(-10);
       else if (e.code === "ArrowRight") skip(10);
-      else if (e.code === "ArrowUp") { volume = Math.min(100, volume + 5); volBar.value = volume; audio.volume = volume / 100; }
-      else if (e.code === "ArrowDown") { volume = Math.max(0, volume - 5); volBar.value = volume; audio.volume = volume / 100; }
+      else if (e.code === "ArrowUp") { volume = Math.min(100, volume + 5); volBar.value = volume; if (player && player.setVolume) player.setVolume(volume); }
+      else if (e.code === "ArrowDown") { volume = Math.max(0, volume - 5); volBar.value = volume; if (player && player.setVolume) player.setVolume(volume); }
       else if (e.key === "n" || e.key === "N") playNextTrack();
       else if (e.key === "p" || e.key === "P") playPrevTrack();
       else if (e.key === "f" || e.key === "F") heartBtn.click();
