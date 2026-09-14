@@ -260,7 +260,7 @@
 
     <div class="top-bar">
       <div class="search-bar">
-        <input type="text" id="search-input" class="search-input" placeholder="Search any song..." autocomplete="off" />
+        <input type="text" id="search-input" class="search-input" placeholder="Search track or artist..." autocomplete="off" />
         <button class="btn-action" id="search-btn"><span>Find</span></button>
       </div>
       <button class="btn-icon" id="theme-btn" title="Theme">
@@ -294,7 +294,7 @@
     <div class="track-header">
       <div class="track-desc">
         <div id="title" class="current-title">Ready to stream</div>
-        <div id="artist" class="current-artist">Search any song to begin</div>
+        <div id="artist" class="current-artist">Search any track to begin</div>
       </div>
       <button class="btn-heart" id="heart-btn" title="Favorite">
         <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
@@ -342,6 +342,7 @@
     </div>
   </div>
 
+  <!-- Native HTML5 audio for pure background playback -->
   <audio id="native-audio" preload="auto" playsinline></audio>
 
   <div class="sheet-overlay" id="menu-sheet">
@@ -384,11 +385,16 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    // Live Endpoints with Multiple Fallbacks
-    const API_SOURCES = [
-      "https://saavn.dev/api/search/songs",
-      "https://jiosaavn-api-privatecvc2.vercel.app/api/search/songs",
-      "https://jiosaavn-api-eight-plum.vercel.app/api/search/songs"
+    // ================= CONFIGURATION =================
+    const YOUTUBE_API_KEY = "AIzaSyCJuQ8KoTdihisteVC-HB_APmNWqLofBoc";
+    // =================================================
+
+    // Direct High-Speed CORS Audio Gateways
+    const AUDIO_GATEWAYS = [
+      (id) => `https://yt-stream.xyz/api/audio/${id}`,
+      (id) => `https://invidious.jing.rocks/latest_version?id=${id}&itag=140`,
+      (id) => `https://inv.nadeko.net/latest_version?id=${id}&itag=140`,
+      (id) => `https://yt.drgnz.club/latest_version?id=${id}&itag=140`
     ];
 
     const audio = document.getElementById("native-audio");
@@ -401,6 +407,7 @@
     let searchHistory = JSON.parse(localStorage.getItem("aura_history") || "[]");
     let volume = parseInt(localStorage.getItem("aura_vol") || "80");
     let isMuted = false, sleepEnd = 0;
+    let gatewayIndex = 0;
 
     const $ = id => document.getElementById(id);
     const searchInput = $("search-input"), searchBtn = $("search-btn");
@@ -415,6 +422,7 @@
 
     audio.volume = volume / 100;
 
+    // True Background Playback Handlers
     audio.addEventListener("play", () => {
       isPlaying = true;
       setPlayIcon(false);
@@ -437,6 +445,20 @@
         audio.play();
       } else {
         playNextTrack();
+      }
+    });
+
+    // Automatic Stream Fallback if a specific proxy instance is slow or down
+    audio.addEventListener("error", () => {
+      if (!currentTrack) return;
+      gatewayIndex++;
+      if (gatewayIndex < AUDIO_GATEWAYS.length) {
+        console.warn("Switching to audio mirror", gatewayIndex);
+        audio.src = AUDIO_GATEWAYS[gatewayIndex](currentTrack.id);
+        audio.play().catch(() => {});
+      } else {
+        toast("Stream error: skipping track");
+        setTimeout(playNextTrack, 1500);
       }
     });
 
@@ -464,85 +486,27 @@
       return `${m}:${s < 10 ? "0" : ""}${s}`;
     }
 
-    // Comprehensive audio stream parser supporting all schema variations
-    function extractBestAudioUrl(item) {
-      if (Array.isArray(item.downloadUrl) && item.downloadUrl.length > 0) {
-        const sorted = [...item.downloadUrl].sort((a, b) => {
-          const qA = parseInt(a.quality) || 0;
-          const qB = parseInt(b.quality) || 0;
-          return qB - qA;
-        });
-        return sorted[0].url || sorted[0].link;
-      }
-      if (Array.isArray(item.download_url) && item.download_url.length > 0) {
-        return item.download_url[item.download_url.length - 1].url;
-      }
-      if (typeof item.media_url === "string") return item.media_url;
-      if (typeof item.url === "string" && item.url.includes(".mp4")) return item.url;
-      return null;
+    function extractVideoId(input) {
+      const m = input.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+      return m ? m[1] : null;
     }
 
-    function extractBestCover(item) {
-      if (Array.isArray(item.image) && item.image.length > 0) {
-        return item.image[item.image.length - 1].url || item.image[0].url;
-      }
-      if (typeof item.image === "string") return item.image;
-      return "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400";
-    }
-
-    function extractArtists(item) {
-      if (item.artists?.primary && Array.isArray(item.artists.primary)) {
-        return item.artists.primary.map(a => a.name).join(", ");
-      }
-      if (item.primaryArtists) return item.primaryArtists;
-      if (item.artist) return item.artist;
-      return "Various Artists";
-    }
-
-    // Multi-Mirror Search
-    async function searchTracks(query) {
-      for (const endpoint of API_SOURCES) {
-        try {
-          const controller = new AbortController();
-          const timer = setTimeout(() => controller.abort(), 6000);
-          
-          const res = await fetch(`${endpoint}?query=${encodeURIComponent(query)}&page=1&limit=15`, {
-            signal: controller.signal
-          });
-          clearTimeout(timer);
-
-          if (!res.ok) continue;
-          const json = await res.json();
-          
-          const rawItems = json?.data?.results || json?.results || (Array.isArray(json?.data) ? json.data : null);
-          if (!rawItems || !rawItems.length) continue;
-
-          const parsed = [];
-          for (const item of rawItems) {
-            const stream = extractBestAudioUrl(item);
-            if (stream) {
-              parsed.push({
-                id: item.id || Math.random().toString(36).substring(7),
-                title: decodeHtml(item.name || item.song || item.title || "Track"),
-                artist: decodeHtml(extractArtists(item)),
-                cover: extractBestCover(item),
-                streamUrl: stream
-              });
-            }
-          }
-
-          if (parsed.length > 0) return parsed;
-        } catch (e) {
-          // Fall through to next mirror
-          continue;
-        }
-      }
-      return [];
-    }
-
+    // Google-Authorized YouTube Search
     async function handleSearch() {
       const query = searchInput.value.trim();
       if (!query) return;
+
+      const directId = extractVideoId(query);
+      if (directId) {
+        loadTrack({
+          id: directId,
+          title: "Custom Stream",
+          artist: "Direct Link",
+          cover: `https://img.youtube.com/vi/${directId}/hqdefault.jpg`
+        });
+        searchInput.value = "";
+        return;
+      }
 
       if (!searchHistory.includes(query)) {
         searchHistory.unshift(query);
@@ -552,18 +516,34 @@
 
       searchBtn.innerHTML = "<span>...</span>";
       try {
-        const items = await searchTracks(query);
-        if (!items.length) {
-          toast("No playable songs found. Try another query.");
+        const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=10&q=${encodeURIComponent(query)}&key=${YOUTUBE_API_KEY}`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data.error) {
+          toast(data.error.message || "API Error");
           return;
         }
+
+        const items = (data.items || []).map(item => ({
+          id: item.id.videoId,
+          title: decodeHtml(item.snippet.title),
+          artist: decodeHtml(item.snippet.channelTitle),
+          cover: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.default.url
+        }));
+
+        if (!items.length) {
+          toast("No songs found");
+          return;
+        }
+
         activeQueue = items;
         queueIndex = -1;
         renderTrackList(resultsList, items, "results");
         switchTab("results");
         updateQueueCount();
       } catch (err) {
-        toast("Search timed out. Please try again.");
+        toast("Search error: check network");
       } finally {
         searchBtn.innerHTML = "<span>Find</span>";
       }
@@ -648,20 +628,19 @@
     }
 
     function loadTrack(track, addToRecent = true) {
-      if (!track || !track.streamUrl) {
-        toast("Stream unavailable");
-        return;
-      }
-
       currentTrack = track;
+      gatewayIndex = 0;
       titleEl.textContent = track.title;
       artistEl.textContent = track.artist;
       coverEl.style.backgroundImage = `url(${track.cover})`;
       coverGlowEl.style.backgroundImage = `url(${track.cover})`;
       updateHeartState();
 
-      audio.src = track.streamUrl;
-      audio.play().catch(e => console.log("User action needed for autoplay:", e));
+      toast("Streaming ad-free...");
+
+      // Point audio element directly to stream gateway
+      audio.src = AUDIO_GATEWAYS[gatewayIndex](track.id);
+      audio.play().catch(() => {});
 
       if (addToRecent) {
         recent = recent.filter(t => t.id !== track.id);
@@ -670,7 +649,7 @@
         localStorage.setItem("aura_recent", JSON.stringify(recent));
       }
 
-      // Native lock screen media session controls
+      // Native Lock Screen & Notification Bar Media Session
       if ("mediaSession" in navigator) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: track.title, 
