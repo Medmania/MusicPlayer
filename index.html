@@ -1522,16 +1522,3 @@
   </script>
 </body>
 </html>
-("focus", () => {
-      if (resultsList.children.length === 0 && searchHistory.length) {
-        resultsList.innerHTML = `<div style="padding:10px;font-size:0.75rem;color:var(--text-muted)">Recent searches</div>`;
-        searchHistory.forEach(q => {
-          const chip = document.createElement("span"); chip.className = "history-chip"; chip.textContent = q;
-          chip.onclick = () => { searchInput.value = q; handleSearch(); }; resultsList.appendChild(chip);
-        });
-        resultsList.classList.add("show");
-      }
-    });
-  </script>
-</body>
-</html>
