@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="manifest" id="pwa-manifest" />
   <style>
     :root { --bg: #07090e; --card-bg: rgba(22, 27, 38, 0.88); --card-border: rgba(255, 255, 255, 0.08); --accent: #38bdf8; --accent-glow: rgba(56, 189, 248, 0.35); --text: #f8fafc; --text-muted: #8899a6; --surface: rgba(15, 23, 42, 0.7); --heart-active: #f43f5e; --safe-bottom: env(safe-area-inset-bottom, 12px); }
     [data-theme="light"] { --bg: #f1f5f9; --card-bg: rgba(255, 255, 255, 0.92); --card-border: rgba(0, 0, 0, 0.08); --accent: #0ea5e9; --accent-glow: rgba(14, 165, 233, 0.3); --text: #0f172a; --text-muted: #64748b; --surface: rgba(241, 245, 249, 0.9); --heart-active: #e11d48; }
@@ -82,7 +83,7 @@
     .extra-btn.active, .extra-btn:active { color: var(--accent); }
     .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 90; display: none; align-items: flex-end; justify-content: center; }
     .sheet-overlay.show { display: flex; }
-    .sheet { background: var(--card-bg); backdrop-filter: blur(24px); width: 100%; max-width: 420px; border-radius: 22px 22px 0 0; padding: 16px 16px calc(20px + var(--safe-bottom)); max-height: 70dvh; overflow-y: auto; border: 1px solid var(--card-border); }
+    .sheet { background: var(--card-bg); backdrop-filter: blur(24px); width: 100%; max-width: 420px; border-radius: 22px 22px 0 0; padding: 16px 16px calc(20px + var(--safe-bottom)); max-height: 75dvh; overflow-y: auto; border: 1px solid var(--card-border); }
     .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
     .sheet-title { font-size: 1rem; font-weight: 700; }
     .sheet-close { background: var(--surface); border: none; color: var(--text); width: 32px; height: 32px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; }
@@ -102,6 +103,9 @@
     .genre-meta { flex: 1; min-width: 0; }
     .genre-name { font-size: 0.9rem; font-weight: 700; }
     .genre-desc { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+    .lyrics-container { display: flex; flex-direction: column; gap: 12px; text-align: center; padding: 10px 4px; }
+    .lyric-line { font-size: 0.95rem; line-height: 1.6; color: var(--text-muted); transition: color 0.25s, font-size 0.25s, transform 0.25s; }
+    .lyric-line.active { color: var(--accent); font-weight: 700; font-size: 1.15rem; transform: scale(1.04); }
   </style>
 </head>
 <body>
@@ -110,7 +114,7 @@
 
     <div class="top-bar">
       <div class="search-bar">
-        <input type="text" id="search-input" class="search-input" placeholder="Search track or artist..." autocomplete="off" />
+        <input type="text" id="search-input" class="search-input" placeholder="Search track or paste playlist link..." autocomplete="off" />
         <button class="btn-action" id="search-btn"><span>Find</span></button>
       </div>
       <button class="btn-icon" id="theme-btn" title="Theme"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16a5 5 0 0 0 0-10h-4z"/></svg></button>
@@ -212,10 +216,26 @@
     </div>
   </div>
 
+  <!-- In-App Lyrics Sheet -->
+  <div class="sheet-overlay" id="lyrics-sheet">
+    <div class="sheet">
+      <div class="sheet-header"><div class="sheet-title" id="lyrics-title">Lyrics</div><button class="sheet-close" data-close>×</button></div>
+      <div class="lyrics-container" id="lyrics-content">Searching lyrics...</div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <script>
+    // ================= CONFIGURATION =================
     const YOUTUBE_API_KEY = "AIzaSyCJuQ8KoTdihisteVC-HB_APmNWqLofBoc";
+    // =================================================
+
+    // Feature 1: Automatic PWA Manifest & Service Worker
+    const pwaManifest = { name: "Aura Music Player", short_name: "Aura", start_url: "./", display: "standalone", background_color: "#07090e", theme_color: "#07090e", icons: [{ src: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=192", sizes: "192x192", type: "image/jpeg" }, { src: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=512", sizes: "512x512", type: "image/jpeg" }] };
+    document.getElementById("pwa-manifest").setAttribute("href", "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(pwaManifest)));
+    if ('serviceWorker' in navigator) { const swCode = `self.addEventListener('install', e => self.skipWaiting()); self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));`; const swBlob = new Blob([swCode], { type: 'application/javascript' }); navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {}); }
+
     const GENRES = [
       { id: "bhakti", name: "Bhakti", icon: "🙏", query: "bhakti bhajan songs playlist" },
       { id: "romance", name: "Romance", icon: "❤️", query: "romantic bollywood songs playlist" },
@@ -231,6 +251,7 @@
     let favorites = JSON.parse(localStorage.getItem("aura_favs") || "[]"), recent = JSON.parse(localStorage.getItem("aura_recent") || "[]");
     let playlists = JSON.parse(localStorage.getItem("aura_playlists") || "{}"), searchHistory = JSON.parse(localStorage.getItem("aura_history") || "[]");
     let volume = parseInt(localStorage.getItem("aura_vol") || "80"), isMuted = false, sleepEnd = 0;
+    let parsedLyrics = [], isSyncedLyrics = false;
 
     const $ = id => document.getElementById(id);
     const searchInput = $("search-input"), searchBtn = $("search-btn"), resultsList = $("results-list"), queueList = $("queue-list");
@@ -238,7 +259,7 @@
     const titleEl = $("title"), artistEl = $("artist"), coverEl = $("cover"), coverGlowEl = $("cover-glow"), heartBtn = $("heart-btn");
     const playBtn = $("play-btn"), playIcon = $("play-icon"), seekBar = $("seek-bar"), currentTimeEl = $("current-time"), durationEl = $("duration");
     const volBar = $("vol-bar"), muteBtn = $("mute-btn"), volIcon = $("vol-icon"), shuffleBtn = $("shuffle-btn"), repeatBtn = $("repeat-btn");
-    const viz = $("viz"), toastEl = $("toast"), sleepBadge = $("sleep-badge");
+    const viz = $("viz"), toastEl = $("toast"), sleepBadge = $("sleep-badge"), lyricsContent = $("lyrics-content"), lyricsTitle = $("lyrics-title");
 
     const tag = document.createElement("script"); tag.src = "https://www.youtube.com/iframe_api"; document.head.appendChild(tag);
     window.onYouTubeIframeAPIReady = function () { player = new YT.Player("yt-player", { height: "200", width: "200", playerVars: { playsinline: 1, controls: 0, disablekb: 1, modestbranding: 1, rel: 0, iv_load_policy: 3 }, events: { onReady: () => { if (player.setVolume) player.setVolume(volume); }, onStateChange: onPlayerStateChange } }); };
@@ -254,6 +275,72 @@
     function toast(msg) { toastEl.textContent = msg; toastEl.classList.add("show"); setTimeout(() => toastEl.classList.remove("show"), 2200); }
     function formatTime(sec) { if (isNaN(sec)) return "0:00"; const m = Math.floor(sec / 60), s = Math.floor(sec % 60); return `${m}:${s < 10 ? "0" : ""}${s}`; }
     function extractVideoId(input) { const m = input.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/); return m ? m[1] : null; }
+    // Feature 7 Helper: Extract playlist ID
+    function extractPlaylistId(input) { const m = input.match(/[?&]list=([a-zA-Z0-9_-]+)/); return m ? m[1] : null; }
+
+    // Feature 2: Infinite Autoplay (Related Tracks Engine)
+    async function fetchRelatedAutoplay(videoId) {
+      try {
+        const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&relatedToVideoId=${videoId}&type=video&maxResults=6&key=${YOUTUBE_API_KEY}`;
+        const res = await fetch(url), data = await res.json();
+        if (data.items?.length) {
+          const newTracks = data.items.map(i => ({ id: i.id.videoId, title: decodeHtml(i.snippet.title), artist: decodeHtml(i.snippet.channelTitle), cover: i.snippet.thumbnails.high?.url || i.snippet.thumbnails.default.url }));
+          activeQueue.push(...newTracks); updateQueueCount(); toast("Auto-Radio: Added similar songs to queue");
+        }
+      } catch (e) {}
+    }
+
+    // Feature 4: LRCLIB In-App Lyrics Integration
+    async function loadLyrics(track) {
+      lyricsTitle.textContent = `${track.title} - Lyrics`; lyricsContent.innerHTML = "Fetching lyrics..."; parsedLyrics = []; isSyncedLyrics = false;
+      try {
+        const cleanTitle = track.title.replace(/\([^)]*\)|\[[^\]]*\]|ft\..*|feat\..*|official.*|video.*|audio.*/gi, '').trim();
+        const url = `https://lrclib.net/api/get?track_name=${encodeURIComponent(cleanTitle)}&artist_name=${encodeURIComponent(track.artist.replace(/vevo|official|channel/gi, '').trim())}`;
+        const res = await fetch(url), data = await res.json();
+        if (data.syncedLyrics) {
+          isSyncedLyrics = true;
+          parsedLyrics = data.syncedLyrics.split('\n').map(line => {
+            const m = line.match(/\[(\d{2}):(\d{2}\.\d{2})\](.*)/);
+            return m ? { time: parseInt(m[1]) * 60 + parseFloat(m[2]), text: m[3].trim() } : null;
+          }).filter(Boolean);
+          lyricsContent.innerHTML = parsedLyrics.map((l, i) => `<div class="lyric-line" id="lyric-${i}">${l.text || "♪"}</div>`).join("");
+        } else if (data.plainLyrics) {
+          lyricsContent.innerHTML = data.plainLyrics.split('\n').map(l => `<div class="lyric-line">${l || "<br>"}</div>`).join("");
+        } else {
+          lyricsContent.innerHTML = `No direct lyrics found.<br><button class="sheet-btn" style="margin-top:14px;width:auto;padding:8px 16px" onclick="window.open('https://www.google.com/search?q=${encodeURIComponent(track.title + ' lyrics')}')">Search on Google</button>`;
+        }
+      } catch (e) {
+        lyricsContent.innerHTML = `Unable to load lyrics.<br><button class="sheet-btn" style="margin-top:14px;width:auto;padding:8px 16px" onclick="window.open('https://www.google.com/search?q=${encodeURIComponent(track.title + ' lyrics')}')">Search on Google</button>`;
+      }
+    }
+
+    function syncLyricsDisplay(curTime) {
+      if (!isSyncedLyrics || !parsedLyrics.length) return;
+      let activeIdx = -1;
+      for (let i = 0; i < parsedLyrics.length; i++) { if (curTime >= parsedLyrics[i].time) activeIdx = i; else break; }
+      if (activeIdx !== -1) {
+        document.querySelectorAll(".lyric-line").forEach((el, idx) => el.classList.toggle("active", idx === activeIdx));
+        const activeEl = document.getElementById(`lyric-${activeIdx}`);
+        if (activeEl) activeEl.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+
+    // Feature 7: Fetch and load public playlist URLs
+    async function loadPublicPlaylistUrl(playlistId) {
+      toast("Loading full playlist..."); searchBtn.innerHTML = "<span>...</span>";
+      try {
+        const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=40&playlistId=${playlistId}&key=${YOUTUBE_API_KEY}`;
+        const res = await fetch(url), data = await res.json();
+        if (data.error) return toast(data.error.message || "Playlist error");
+        const tracks = (data.items || []).filter(item => item.snippet?.resourceId?.videoId).map(item => {
+          const vid = item.snippet.resourceId.videoId;
+          return { id: vid, title: decodeHtml(item.snippet.title), artist: decodeHtml(item.snippet.videoOwnerChannelTitle || item.snippet.channelTitle || "YouTube"), cover: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.default?.url || `https://img.youtube.com/vi/${vid}/hqdefault.jpg` };
+        }).filter(t => t.title && !t.title.toLowerCase().includes("private") && !t.title.toLowerCase().includes("deleted"));
+        if (!tracks.length) return toast("No playable tracks found in playlist");
+        activeQueue = tracks; queueIndex = 0; renderTrackList(resultsList, tracks, "results"); switchTab("results"); updateQueueCount(); loadTrack(tracks[0]); toast(`Loaded ${tracks.length} tracks!`);
+      } catch (e) { toast("Failed to load playlist URL"); }
+      finally { searchBtn.innerHTML = "<span>Find</span>"; searchInput.value = ""; }
+    }
 
     async function loadGenrePlaylist(genre) {
       const cacheKey = `aura_genre_${genre.id}`, cached = localStorage.getItem(cacheKey);
@@ -297,6 +384,8 @@
 
     async function handleSearch() {
       const query = searchInput.value.trim(); if (!query) return;
+      const playlistId = extractPlaylistId(query);
+      if (playlistId) return loadPublicPlaylistUrl(playlistId);
       const directId = extractVideoId(query);
       if (directId) { loadTrack({ id: directId, title: "Direct Video Stream", artist: "YouTube", cover: `https://img.youtube.com/vi/${directId}/hqdefault.jpg` }); searchInput.value = ""; return; }
       if (!searchHistory.includes(query)) { searchHistory.unshift(query); if (searchHistory.length > 12) searchHistory.pop(); localStorage.setItem("aura_history", JSON.stringify(searchHistory)); }
@@ -351,6 +440,9 @@
         navigator.mediaSession.setActionHandler("previoustrack", playPrevTrack); navigator.mediaSession.setActionHandler("nexttrack", playNextTrack);
         navigator.mediaSession.setActionHandler("seekbackward", () => skip(-10)); navigator.mediaSession.setActionHandler("seekforward", () => skip(10));
       }
+      // If Queue has only 1 track left, auto-load related songs for infinite playback
+      if (activeQueue.length - queueIndex <= 1) fetchRelatedAutoplay(track.id);
+      if ($("lyrics-sheet").classList.contains("show")) loadLyrics(track);
     }
 
     function togglePlay() { if (!player) return; isPlaying ? player.pauseVideo() : player.playVideo(); }
@@ -374,8 +466,9 @@
         if (!player?.getCurrentTime) return;
         const cur = player.getCurrentTime(), dur = player.getDuration();
         if (dur > 0) { seekBar.value = (cur / dur) * 100; currentTimeEl.textContent = formatTime(cur); durationEl.textContent = formatTime(dur); }
+        syncLyricsDisplay(cur);
         if (sleepEnd && Date.now() >= sleepEnd) { player.pauseVideo(); clearSleep(); toast("Sleep timer ended"); }
-      }, 400);
+      }, 350);
     }
     function stopProgressTracking() { clearInterval(progressTimer); }
     seekBar.addEventListener("input", () => { if (player?.getDuration) player.seekTo((seekBar.value / 100) * player.getDuration(), true); });
@@ -436,7 +529,12 @@
     });
     function clearSleep() { sleepEnd = 0; sleepBadge.classList.remove("show"); }
 
-    $("lyrics-btn").onclick = () => { if (!currentTrack) return toast("No track playing"); window.open(`https://www.google.com/search?q=${encodeURIComponent(currentTrack.title + " " + currentTrack.artist + " lyrics")}`, "_blank"); };
+    // Feature 4 Trigger: Open Lyrics Modal
+    $("lyrics-btn").onclick = () => {
+      if (!currentTrack) return toast("No track playing");
+      openSheet("lyrics-sheet"); loadLyrics(currentTrack);
+    };
+
     $("create-playlist-btn").onclick = () => {
       const name = $("playlist-name").value.trim(); if (!name) return toast("Enter a name"); if (playlists[name]) return toast("Already exists");
       playlists[name] = []; localStorage.setItem("aura_playlists", JSON.stringify(playlists)); $("playlist-name").value = ""; closeSheets(); renderPlaylists(); toast("Playlist created");
