@@ -11,259 +11,97 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg: #07090e;
-      --card-bg: rgba(22, 27, 38, 0.88);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --accent: #38bdf8;
-      --accent-glow: rgba(56, 189, 248, 0.35);
-      --text: #f8fafc;
-      --text-muted: #8899a6;
-      --surface: rgba(15, 23, 42, 0.7);
-      --heart-active: #f43f5e;
-      --safe-bottom: env(safe-area-inset-bottom, 12px);
-    }
-    [data-theme="light"] {
-      --bg: #f1f5f9;
-      --card-bg: rgba(255, 255, 255, 0.92);
-      --card-border: rgba(0, 0, 0, 0.08);
-      --accent: #0ea5e9;
-      --accent-glow: rgba(14, 165, 233, 0.3);
-      --text: #0f172a;
-      --text-muted: #64748b;
-      --surface: rgba(241, 245, 249, 0.9);
-      --heart-active: #e11d48;
-    }
+    :root { --bg: #07090e; --card-bg: rgba(22, 27, 38, 0.88); --card-border: rgba(255, 255, 255, 0.08); --accent: #38bdf8; --accent-glow: rgba(56, 189, 248, 0.35); --text: #f8fafc; --text-muted: #8899a6; --surface: rgba(15, 23, 42, 0.7); --heart-active: #f43f5e; --safe-bottom: env(safe-area-inset-bottom, 12px); }
+    [data-theme="light"] { --bg: #f1f5f9; --card-bg: rgba(255, 255, 255, 0.92); --card-border: rgba(0, 0, 0, 0.08); --accent: #0ea5e9; --accent-glow: rgba(14, 165, 233, 0.3); --text: #0f172a; --text-muted: #64748b; --surface: rgba(241, 245, 249, 0.9); --heart-active: #e11d48; }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
-    body {
-      background: radial-gradient(circle at 50% 0%, #1e293b 0%, var(--bg) 70%);
-      color: var(--text);
-      min-height: 100dvh;
-      padding: 12px 12px calc(12px + var(--safe-bottom));
-      overflow-x: hidden;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-    }
+    body { background: radial-gradient(circle at 50% 0%, #1e293b 0%, var(--bg) 70%); color: var(--text); min-height: 100dvh; padding: 12px 12px calc(12px + var(--safe-bottom)); overflow-x: hidden; display: flex; justify-content: center; align-items: flex-start; }
     [data-theme="light"] body { background: radial-gradient(circle at 50% 0%, #e0f2fe 0%, var(--bg) 70%); }
-    .player-container {
-      background: var(--card-bg);
-      backdrop-filter: blur(28px);
-      -webkit-backdrop-filter: blur(28px);
-      border: 1px solid var(--card-border);
-      width: 100%;
-      max-width: 420px;
-      padding: 16px;
-      border-radius: 24px;
-      box-shadow: 0 20px 40px -12px rgba(0,0,0,0.6);
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      position: relative;
-    }
+    .player-container { background: var(--card-bg); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid var(--card-border); width: 100%; max-width: 420px; padding: 16px; border-radius: 24px; box-shadow: 0 20px 40px -12px rgba(0,0,0,0.6); display: flex; flex-direction: column; gap: 12px; position: relative; }
     .top-bar { display: flex; gap: 8px; align-items: center; }
-    .search-bar {
-      flex: 1; display: flex; gap: 6px;
-      background: var(--surface); border: 1px solid var(--card-border);
-      border-radius: 14px; padding: 4px 4px 4px 12px; align-items: center;
-    }
+    .search-bar { flex: 1; display: flex; gap: 6px; background: var(--surface); border: 1px solid var(--card-border); border-radius: 14px; padding: 4px 4px 4px 12px; align-items: center; }
     .search-bar:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
-    .search-input {
-      flex: 1; background: transparent; border: none; outline: none;
-      color: var(--text); font-size: 0.9rem; font-weight: 500; min-width: 0;
-    }
+    .search-input { flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-size: 0.9rem; font-weight: 500; min-width: 0; }
     .search-input::placeholder { color: var(--text-muted); }
-    .btn-action, .btn-icon {
-      background: var(--accent); border: none; color: #030712;
-      font-weight: 700; font-size: 0.8rem; padding: 10px 14px;
-      border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: transform 0.1s, opacity 0.2s; flex-shrink: 0;
-    }
+    .btn-action, .btn-icon { background: var(--accent); border: none; color: #030712; font-weight: 700; font-size: 0.8rem; padding: 10px 14px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.1s, opacity 0.2s; flex-shrink: 0; }
     .btn-action:active, .btn-icon:active { transform: scale(0.94); }
     .btn-icon { background: var(--surface); color: var(--text); border: 1px solid var(--card-border); width: 42px; height: 42px; padding: 0; }
     .btn-icon svg { width: 18px; height: 18px; }
-    
     .tabs { display: flex; gap: 4px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding-bottom: 2px; }
     .tabs::-webkit-scrollbar { display: none; }
-    .tab-btn {
-      background: none; border: none; color: var(--text-muted);
-      font-size: 0.78rem; font-weight: 600; cursor: pointer;
-      padding: 6px 10px; white-space: nowrap; position: relative; flex-shrink: 0;
-    }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-size: 0.78rem; font-weight: 600; cursor: pointer; padding: 6px 10px; white-space: nowrap; position: relative; flex-shrink: 0; }
     .tab-btn.active { color: var(--accent); }
-    .tab-btn.active::after {
-      content: ""; position: absolute; bottom: -2px; left: 8px; right: 8px;
-      height: 2px; background: var(--accent); border-radius: 2px;
-    }
-
-    .list-container {
-      max-height: 160px; overflow-y: auto; background: var(--surface);
-      border-radius: 14px; border: 1px solid var(--card-border);
-      display: none; flex-direction: column; -webkit-overflow-scrolling: touch;
-    }
+    .tab-btn.active::after { content: ""; position: absolute; bottom: -2px; left: 8px; right: 8px; height: 2px; background: var(--accent); border-radius: 2px; }
+    .list-container { max-height: 160px; overflow-y: auto; background: var(--surface); border-radius: 14px; border: 1px solid var(--card-border); display: none; flex-direction: column; -webkit-overflow-scrolling: touch; }
     .list-container.show { display: flex; }
-    .track-row {
-      display: flex; align-items: center; gap: 10px; padding: 10px 12px;
-      border-bottom: 1px solid rgba(255,255,255,0.04); cursor: pointer;
-      transition: background 0.15s; min-height: 56px;
-    }
+    .track-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); cursor: pointer; transition: background 0.15s; min-height: 56px; }
     .track-row:active, .track-row.active { background: rgba(56,189,248,0.12); }
     .track-thumb { width: 42px; height: 42px; border-radius: 10px; object-fit: cover; flex-shrink: 0; background: #1e293b; }
     .track-meta { flex: 1; overflow: hidden; text-align: left; min-width: 0; }
     .track-name { font-size: 0.84rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .track-channel { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .track-actions { display: flex; gap: 4px; flex-shrink: 0; }
-    .track-actions button {
-      background: none; border: none; color: var(--text-muted); padding: 6px;
-      border-radius: 8px; cursor: pointer;
-    }
+    .track-actions button { background: none; border: none; color: var(--text-muted); padding: 6px; border-radius: 8px; cursor: pointer; }
     .empty-state { padding: 20px 12px; font-size: 0.8rem; color: var(--text-muted); text-align: center; }
-
-    .cover-wrapper {
-      position: relative; width: 200px; height: 200px; margin: 4px auto 6px;
-      display: flex; justify-content: center; align-items: center;
-    }
-    .cover-glow {
-      position: absolute; width: 160px; height: 160px; border-radius: 22px;
-      filter: blur(28px); opacity: 0.5; z-index: 1; background-size: cover; background-position: center;
-      transition: background-image 0.4s ease;
-    }
-    .cover-art {
-      position: relative; z-index: 2; width: 100%; height: 100%; border-radius: 18px;
-      background-size: cover; background-position: center; background-color: #1e293b;
-      box-shadow: 0 12px 28px rgba(0,0,0,0.55); border: 1px solid var(--card-border);
-      transition: transform 0.35s ease, background-image 0.4s ease;
-    }
+    .cover-wrapper { position: relative; width: 200px; height: 200px; margin: 4px auto 6px; display: flex; justify-content: center; align-items: center; }
+    .cover-glow { position: absolute; width: 160px; height: 160px; border-radius: 22px; filter: blur(28px); opacity: 0.5; z-index: 1; background-size: cover; background-position: center; transition: background-image 0.4s ease; }
+    .cover-art { position: relative; z-index: 2; width: 100%; height: 100%; border-radius: 18px; background-size: cover; background-position: center; background-color: #1e293b; box-shadow: 0 12px 28px rgba(0,0,0,0.55); border: 1px solid var(--card-border); transition: transform 0.35s ease, background-image 0.4s ease; }
     .cover-art.playing { transform: scale(1.04); }
-
-    .viz {
-      position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 3px; align-items: flex-end; height: 18px; z-index: 3; opacity: 0;
-      transition: opacity 0.3s;
-    }
+    .viz { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 3px; align-items: flex-end; height: 18px; z-index: 3; opacity: 0; transition: opacity 0.3s; }
     .viz.show { opacity: 0.85; }
-    .viz span {
-      width: 3px; background: var(--accent); border-radius: 2px;
-      animation: bounce 0.8s ease-in-out infinite alternate;
-    }
+    .viz span { width: 3px; background: var(--accent); border-radius: 2px; animation: bounce 0.8s ease-in-out infinite alternate; }
     .viz span:nth-child(1) { height: 6px; animation-delay: 0s; }
     .viz span:nth-child(2) { height: 12px; animation-delay: 0.15s; }
     .viz span:nth-child(3) { height: 9px; animation-delay: 0.3s; }
     .viz span:nth-child(4) { height: 15px; animation-delay: 0.1s; }
     .viz span:nth-child(5) { height: 7px; animation-delay: 0.25s; }
     @keyframes bounce { to { height: 4px; } }
-
     .track-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
     .track-desc { overflow: hidden; flex: 1; min-width: 0; }
     .current-title { font-size: 1.05rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .current-artist { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .btn-heart {
-      background: none; border: none; cursor: pointer; padding: 8px;
-      color: var(--text-muted); transition: color 0.2s, transform 0.15s;
-    }
+    .btn-heart { background: none; border: none; cursor: pointer; padding: 8px; color: var(--text-muted); transition: color 0.2s, transform 0.15s; }
     .btn-heart.active { color: var(--heart-active); }
     .btn-heart:active { transform: scale(1.25); }
-
     .timeline { width: 100%; display: flex; flex-direction: column; gap: 4px; }
     .time-stamps { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-muted); font-weight: 600; }
-    input[type="range"] {
-      width: 100%; -webkit-appearance: none; height: 6px;
-      background: rgba(255,255,255,0.12); border-radius: 4px; outline: none; cursor: pointer;
-    }
+    input[type="range"] { width: 100%; -webkit-appearance: none; height: 6px; background: rgba(255,255,255,0.12); border-radius: 4px; outline: none; cursor: pointer; }
     [data-theme="light"] input[type="range"] { background: rgba(0,0,0,0.12); }
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
-      background: var(--accent); box-shadow: 0 0 10px var(--accent-glow); cursor: pointer;
-    }
-
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent-glow); cursor: pointer; }
     .vol-row { display: flex; align-items: center; gap: 10px; padding: 0 2px; }
     .vol-row svg { width: 18px; height: 18px; color: var(--text-muted); flex-shrink: 0; }
     .vol-slider { flex: 1; }
-
-    .playback-controls {
-      display: flex; justify-content: center; align-items: center; gap: 14px; margin-top: 2px;
-    }
-    .btn-ctrl {
-      background: none; border: none; color: var(--text); cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      width: 46px; height: 46px; border-radius: 50%; transition: background 0.15s, transform 0.1s;
-    }
+    .playback-controls { display: flex; justify-content: center; align-items: center; gap: 14px; margin-top: 2px; }
+    .btn-ctrl { background: none; border: none; color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 46px; height: 46px; border-radius: 50%; transition: background 0.15s, transform 0.1s; }
     .btn-ctrl:active { transform: scale(0.9); background: rgba(255,255,255,0.08); }
-    .btn-play {
-      width: 64px; height: 64px; background: var(--accent); color: #030712;
-      box-shadow: 0 8px 22px var(--accent-glow);
-    }
+    .btn-play { width: 64px; height: 64px; background: var(--accent); color: #030712; box-shadow: 0 8px 22px var(--accent-glow); }
     .btn-play:active { background: #7dd3fc; }
     .mode-btn.active { color: var(--accent); }
-
-    .extra-row {
-      display: flex; justify-content: space-around; align-items: center;
-      gap: 6px; padding-top: 4px; border-top: 1px solid var(--card-border);
-    }
-    .extra-btn {
-      background: none; border: none; color: var(--text-muted); font-size: 0.7rem;
-      font-weight: 600; cursor: pointer; display: flex; flex-direction: column;
-      align-items: center; gap: 2px; padding: 6px 8px; border-radius: 10px;
-    }
+    .extra-row { display: flex; justify-content: space-around; align-items: center; gap: 6px; padding-top: 4px; border-top: 1px solid var(--card-border); }
+    .extra-btn { background: none; border: none; color: var(--text-muted); font-size: 0.7rem; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 8px; border-radius: 10px; }
     .extra-btn svg { width: 18px; height: 18px; }
     .extra-btn.active, .extra-btn:active { color: var(--accent); }
-
-    .sheet-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 90;
-      display: none; align-items: flex-end; justify-content: center;
-    }
+    .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 90; display: none; align-items: flex-end; justify-content: center; }
     .sheet-overlay.show { display: flex; }
-    .sheet {
-      background: var(--card-bg); backdrop-filter: blur(24px);
-      width: 100%; max-width: 420px; border-radius: 22px 22px 0 0;
-      padding: 16px 16px calc(20px + var(--safe-bottom));
-      max-height: 70dvh; overflow-y: auto; border: 1px solid var(--card-border);
-    }
+    .sheet { background: var(--card-bg); backdrop-filter: blur(24px); width: 100%; max-width: 420px; border-radius: 22px 22px 0 0; padding: 16px 16px calc(20px + var(--safe-bottom)); max-height: 70dvh; overflow-y: auto; border: 1px solid var(--card-border); }
     .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
     .sheet-title { font-size: 1rem; font-weight: 700; }
     .sheet-close { background: var(--surface); border: none; color: var(--text); width: 32px; height: 32px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; }
-    .sheet input {
-      width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--card-border);
-      background: var(--surface); color: var(--text); font-size: 0.9rem; margin-bottom: 10px;
-    }
-    .sheet-btn {
-      width: 100%; padding: 13px; border-radius: 12px; border: none;
-      background: var(--accent); color: #030712; font-weight: 700; font-size: 0.9rem; cursor: pointer;
-    }
-    .history-chip {
-      display: inline-block; padding: 6px 12px; margin: 4px; border-radius: 20px;
-      background: var(--surface); border: 1px solid var(--card-border);
-      font-size: 0.78rem; color: var(--text); cursor: pointer;
-    }
-
-    .toast {
-      position: fixed; bottom: calc(24px + var(--safe-bottom)); left: 50%; transform: translateX(-50%) translateY(80px);
-      background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text);
-      padding: 10px 18px; border-radius: 14px; font-size: 0.82rem; font-weight: 600;
-      z-index: 100; opacity: 0; transition: all 0.3s ease; pointer-events: none;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-    }
+    .sheet input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--card-border); background: var(--surface); color: var(--text); font-size: 0.9rem; margin-bottom: 10px; }
+    .sheet-btn { width: 100%; padding: 13px; border-radius: 12px; border: none; background: var(--accent); color: #030712; font-weight: 700; font-size: 0.9rem; cursor: pointer; }
+    .history-chip { display: inline-block; padding: 6px 12px; margin: 4px; border-radius: 20px; background: var(--surface); border: 1px solid var(--card-border); font-size: 0.78rem; color: var(--text); cursor: pointer; }
+    .toast { position: fixed; bottom: calc(24px + var(--safe-bottom)); left: 50%; transform: translateX(-50%) translateY(80px); background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text); padding: 10px 18px; border-radius: 14px; font-size: 0.82rem; font-weight: 600; z-index: 100; opacity: 0; transition: all 0.3s ease; pointer-events: none; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     svg { fill: currentColor; width: 22px; height: 22px; }
     .btn-play svg { width: 28px; height: 28px; }
-    .sleep-badge {
-      position: absolute; top: 8px; right: 8px; background: var(--accent); color: #030712;
-      font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 10px; z-index: 5;
-      display: none;
-    }
+    .sleep-badge { position: absolute; top: 8px; right: 8px; background: var(--accent); color: #030712; font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 10px; z-index: 5; display: none; }
     .sleep-badge.show { display: block; }
-
-    /* Hidden YouTube Official Player Iframe */
-    #yt-hidden-wrapper {
-      position: absolute;
-      top: -9999px;
-      left: -9999px;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      opacity: 0;
-      pointer-events: none;
-    }
+    #yt-hidden-wrapper { position: absolute; top: -9999px; left: -9999px; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; }
+    .genre-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.04); cursor: pointer; transition: background 0.15s; min-height: 58px; }
+    .genre-row:active { background: rgba(56,189,248,0.12); }
+    .genre-icon { width: 42px; height: 42px; border-radius: 12px; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 700; color: #030712; flex-shrink: 0; }
+    .genre-meta { flex: 1; min-width: 0; }
+    .genre-name { font-size: 0.9rem; font-weight: 700; }
+    .genre-desc { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
   </style>
 </head>
 <body>
@@ -275,12 +113,8 @@
         <input type="text" id="search-input" class="search-input" placeholder="Search track or artist..." autocomplete="off" />
         <button class="btn-action" id="search-btn"><span>Find</span></button>
       </div>
-      <button class="btn-icon" id="theme-btn" title="Theme">
-        <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16a5 5 0 0 0 0-10h-4z"/></svg>
-      </button>
-      <button class="btn-icon" id="menu-btn" title="More">
-        <svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
-      </button>
+      <button class="btn-icon" id="theme-btn" title="Theme"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16a5 5 0 0 0 0-10h-4z"/></svg></button>
+      <button class="btn-icon" id="menu-btn" title="More"><svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg></button>
     </div>
 
     <div class="tabs">
@@ -289,6 +123,7 @@
       <button class="tab-btn" data-tab="favorites">Favs <span id="fav-count">(0)</span></button>
       <button class="tab-btn" data-tab="recent">Recent</button>
       <button class="tab-btn" data-tab="playlists">Lists</button>
+      <button class="tab-btn" data-tab="discover">Discover</button>
     </div>
 
     <div id="results-list" class="list-container show"></div>
@@ -296,6 +131,7 @@
     <div id="favorites-list" class="list-container"></div>
     <div id="recent-list" class="list-container"></div>
     <div id="playlists-list" class="list-container"></div>
+    <div id="discover-list" class="list-container"></div>
 
     <div class="cover-wrapper">
       <div id="cover-glow" class="cover-glow"></div>
@@ -308,42 +144,25 @@
         <div id="title" class="current-title">Ready to stream</div>
         <div id="artist" class="current-artist">Search any track to begin</div>
       </div>
-      <button class="btn-heart" id="heart-btn" title="Favorite">
-        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-      </button>
+      <button class="btn-heart" id="heart-btn" title="Favorite"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></button>
     </div>
 
     <div class="timeline">
       <input type="range" id="seek-bar" value="0" min="0" max="100" step="0.1" />
-      <div class="time-stamps">
-        <span id="current-time">0:00</span>
-        <span id="duration">0:00</span>
-      </div>
+      <div class="time-stamps"><span id="current-time">0:00</span><span id="duration">0:00</span></div>
     </div>
 
     <div class="vol-row">
-      <button class="btn-ctrl" id="mute-btn" style="width:36px;height:36px" title="Mute">
-        <svg id="vol-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-      </button>
+      <button class="btn-ctrl" id="mute-btn" style="width:36px;height:36px" title="Mute"><svg id="vol-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></button>
       <input type="range" id="vol-bar" class="vol-slider" value="80" min="0" max="100" step="1" />
     </div>
 
     <div class="playback-controls">
-      <button class="btn-ctrl mode-btn" id="shuffle-btn" title="Shuffle">
-        <svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
-      </button>
-      <button class="btn-ctrl" id="prev-btn" title="Previous">
-        <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
-      </button>
-      <button class="btn-ctrl btn-play" id="play-btn">
-        <svg id="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-      </button>
-      <button class="btn-ctrl" id="next-btn" title="Next">
-        <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
-      </button>
-      <button class="btn-ctrl mode-btn" id="repeat-btn" title="Repeat">
-        <svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
-      </button>
+      <button class="btn-ctrl mode-btn" id="shuffle-btn" title="Shuffle"><svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg></button>
+      <button class="btn-ctrl" id="prev-btn" title="Previous"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+      <button class="btn-ctrl btn-play" id="play-btn"><svg id="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+      <button class="btn-ctrl" id="next-btn" title="Next"><svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+      <button class="btn-ctrl mode-btn" id="repeat-btn" title="Repeat"><svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg></button>
     </div>
 
     <div class="extra-row">
@@ -354,10 +173,7 @@
     </div>
   </div>
 
-  <!-- Official YouTube Iframe Host -->
-  <div id="yt-hidden-wrapper">
-    <div id="yt-player"></div>
-  </div>
+  <div id="yt-hidden-wrapper"><div id="yt-player"></div></div>
 
   <div class="sheet-overlay" id="menu-sheet">
     <div class="sheet">
@@ -399,396 +215,189 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    // ================= CONFIGURATION =================
     const YOUTUBE_API_KEY = "AIzaSyCJuQ8KoTdihisteVC-HB_APmNWqLofBoc";
-    // =================================================
+    const GENRES = [
+      { id: "bhakti", name: "Bhakti", icon: "🙏", query: "bhakti bhajan songs playlist" },
+      { id: "romance", name: "Romance", icon: "❤️", query: "romantic bollywood songs playlist" },
+      { id: "party", name: "Party", icon: "🎉", query: "bollywood party dance songs playlist" },
+      { id: "trending", name: "Trending", icon: "🔥", query: "trending hindi songs playlist" },
+      { id: "lofi", name: "Lo-fi", icon: "🌙", query: "lofi hip hop beats playlist" },
+      { id: "punjabi", name: "Punjabi", icon: "🕺", query: "punjabi party songs playlist" },
+      { id: "devotional", name: "Devotional", icon: "🛕", query: "hindu devotional songs playlist" },
+      { id: "workout", name: "Workout", icon: "💪", query: "gym workout motivation songs playlist" }
+    ];
 
-    let player = null;
-    let isPlaying = false, progressTimer = null;
-    let currentTrack = null, activeQueue = [], queueIndex = -1;
-    let shuffleOn = false, repeatMode = 0;
-    let favorites = JSON.parse(localStorage.getItem("aura_favs") || "[]");
-    let recent = JSON.parse(localStorage.getItem("aura_recent") || "[]");
-    let playlists = JSON.parse(localStorage.getItem("aura_playlists") || "{}");
-    let searchHistory = JSON.parse(localStorage.getItem("aura_history") || "[]");
-    let volume = parseInt(localStorage.getItem("aura_vol") || "80");
-    let isMuted = false, sleepEnd = 0;
+    let player = null, isPlaying = false, progressTimer = null, currentTrack = null, activeQueue = [], queueIndex = -1, shuffleOn = false, repeatMode = 0;
+    let favorites = JSON.parse(localStorage.getItem("aura_favs") || "[]"), recent = JSON.parse(localStorage.getItem("aura_recent") || "[]");
+    let playlists = JSON.parse(localStorage.getItem("aura_playlists") || "{}"), searchHistory = JSON.parse(localStorage.getItem("aura_history") || "[]");
+    let volume = parseInt(localStorage.getItem("aura_vol") || "80"), isMuted = false, sleepEnd = 0;
 
     const $ = id => document.getElementById(id);
-    const searchInput = $("search-input"), searchBtn = $("search-btn");
-    const resultsList = $("results-list"), queueList = $("queue-list");
-    const favoritesList = $("favorites-list"), recentList = $("recent-list"), playlistsList = $("playlists-list");
-    const titleEl = $("title"), artistEl = $("artist"), coverEl = $("cover"), coverGlowEl = $("cover-glow");
-    const heartBtn = $("heart-btn"), playBtn = $("play-btn"), playIcon = $("play-icon");
-    const seekBar = $("seek-bar"), currentTimeEl = $("current-time"), durationEl = $("duration");
-    const volBar = $("vol-bar"), muteBtn = $("mute-btn"), volIcon = $("vol-icon");
-    const shuffleBtn = $("shuffle-btn"), repeatBtn = $("repeat-btn");
+    const searchInput = $("search-input"), searchBtn = $("search-btn"), resultsList = $("results-list"), queueList = $("queue-list");
+    const favoritesList = $("favorites-list"), recentList = $("recent-list"), playlistsList = $("playlists-list"), discoverList = $("discover-list");
+    const titleEl = $("title"), artistEl = $("artist"), coverEl = $("cover"), coverGlowEl = $("cover-glow"), heartBtn = $("heart-btn");
+    const playBtn = $("play-btn"), playIcon = $("play-icon"), seekBar = $("seek-bar"), currentTimeEl = $("current-time"), durationEl = $("duration");
+    const volBar = $("vol-bar"), muteBtn = $("mute-btn"), volIcon = $("vol-icon"), shuffleBtn = $("shuffle-btn"), repeatBtn = $("repeat-btn");
     const viz = $("viz"), toastEl = $("toast"), sleepBadge = $("sleep-badge");
 
-    // Load YouTube Official IFrame API
-    const tag = document.createElement("script");
-    tag.src = "https://www.youtube.com/iframe_api";
-    document.head.appendChild(tag);
+    const tag = document.createElement("script"); tag.src = "https://www.youtube.com/iframe_api"; document.head.appendChild(tag);
+    window.onYouTubeIframeAPIReady = function () { player = new YT.Player("yt-player", { height: "200", width: "200", playerVars: { playsinline: 1, controls: 0, disablekb: 1, modestbranding: 1, rel: 0, iv_load_policy: 3 }, events: { onReady: () => { if (player.setVolume) player.setVolume(volume); }, onStateChange: onPlayerStateChange } }); };
 
-    window.onYouTubeIframeAPIReady = function () {
-      player = new YT.Player("yt-player", {
-        height: "200",
-        width: "200",
-        playerVars: {
-          playsinline: 1,
-          controls: 0,
-          disablekb: 1,
-          modestbranding: 1,
-          rel: 0,
-          iv_load_policy: 3
-        },
-        events: {
-          onReady: () => {
-            if (player.setVolume) player.setVolume(volume);
-          },
-          onStateChange: onPlayerStateChange
-        }
+    function onPlayerStateChange(e) {
+      if (e.data === YT.PlayerState.PLAYING) { isPlaying = true; setPlayIcon(false); coverEl.classList.add("playing"); viz.classList.add("show"); startProgressTracking(); }
+      else { isPlaying = false; setPlayIcon(true); coverEl.classList.remove("playing"); viz.classList.remove("show"); stopProgressTracking(); }
+      if (e.data === YT.PlayerState.ENDED) { if (repeatMode === 1) { player.seekTo(0, true); player.playVideo(); } else { playNextTrack(); } }
+    }
+
+    function setPlayIcon(showPlay) { playIcon.innerHTML = showPlay ? `<path d="M8 5v14l11-7z"/>` : `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`; }
+    function decodeHtml(html) { const t = document.createElement("textarea"); t.innerHTML = html || ""; return t.value; }
+    function toast(msg) { toastEl.textContent = msg; toastEl.classList.add("show"); setTimeout(() => toastEl.classList.remove("show"), 2200); }
+    function formatTime(sec) { if (isNaN(sec)) return "0:00"; const m = Math.floor(sec / 60), s = Math.floor(sec % 60); return `${m}:${s < 10 ? "0" : ""}${s}`; }
+    function extractVideoId(input) { const m = input.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/); return m ? m[1] : null; }
+
+    async function loadGenrePlaylist(genre) {
+      const cacheKey = `aura_genre_${genre.id}`, cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        try {
+          const { tracks, timestamp, playlistTitle } = JSON.parse(cached);
+          if (Date.now() - timestamp < 12 * 3600 * 1000 && tracks?.length) { activeQueue = tracks; queueIndex = -1; renderTrackList(resultsList, tracks, "results"); switchTab("results"); updateQueueCount(); toast(`Loaded: ${playlistTitle || genre.name}`); return; }
+        } catch (e) {}
+      }
+      toast(`Loading ${genre.name} playlist...`);
+      try {
+        const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=playlist&maxResults=6&q=${encodeURIComponent(genre.query)}&key=${YOUTUBE_API_KEY}`;
+        const searchRes = await fetch(searchUrl), searchData = await searchRes.json();
+        if (searchData.error) return toast(searchData.error.message || "API Error");
+        if (!searchData.items?.length) return toast("No playlists found for " + genre.name);
+
+        const best = searchData.items[0], playlistId = best.id.playlistId, playlistTitle = decodeHtml(best.snippet.title);
+        const itemsUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=30&playlistId=${playlistId}&key=${YOUTUBE_API_KEY}`;
+        const itemsRes = await fetch(itemsUrl), itemsData = await itemsRes.json();
+        if (itemsData.error) return toast(itemsData.error.message || "Could not load playlist");
+
+        const tracks = (itemsData.items || []).filter(item => item.snippet?.resourceId?.videoId).map(item => {
+          const vid = item.snippet.resourceId.videoId;
+          return { id: vid, title: decodeHtml(item.snippet.title), artist: decodeHtml(item.snippet.videoOwnerChannelTitle || item.snippet.channelTitle || "YouTube"), cover: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || `https://img.youtube.com/vi/${vid}/hqdefault.jpg` };
+        }).filter(t => t.title && !t.title.toLowerCase().includes("private") && !t.title.toLowerCase().includes("deleted"));
+
+        if (!tracks.length) return toast("This playlist has no playable tracks");
+        localStorage.setItem(cacheKey, JSON.stringify({ tracks, timestamp: Date.now(), playlistTitle }));
+        activeQueue = tracks; queueIndex = -1; renderTrackList(resultsList, tracks, "results"); switchTab("results"); updateQueueCount(); toast(`Loaded: ${playlistTitle}`);
+      } catch (err) { toast("Failed to load playlist. Check network."); }
+    }
+
+    function renderDiscover() {
+      discoverList.innerHTML = "";
+      GENRES.forEach(g => {
+        const row = document.createElement("div"); row.className = "genre-row";
+        row.innerHTML = `<div class="genre-icon">${g.icon}</div><div class="genre-meta"><div class="genre-name">${g.name}</div><div class="genre-desc">Real YouTube playlist</div></div>`;
+        row.onclick = () => loadGenrePlaylist(g); discoverList.appendChild(row);
       });
-    };
-
-    function onPlayerStateChange(event) {
-      if (event.data === YT.PlayerState.PLAYING) {
-        isPlaying = true;
-        setPlayIcon(false);
-        coverEl.classList.add("playing");
-        viz.classList.add("show");
-        startProgressTracking();
-      } else {
-        isPlaying = false;
-        setPlayIcon(true);
-        coverEl.classList.remove("playing");
-        viz.classList.remove("show");
-        stopProgressTracking();
-      }
-
-      if (event.data === YT.PlayerState.ENDED) {
-        if (repeatMode === 1) {
-          player.seekTo(0, true);
-          player.playVideo();
-        } else {
-          playNextTrack();
-        }
-      }
     }
 
-    function setPlayIcon(showPlay) {
-      playIcon.innerHTML = showPlay
-        ? `<path d="M8 5v14l11-7z"/>`
-        : `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`;
-    }
-
-    function decodeHtml(html) {
-      const t = document.createElement("textarea");
-      t.innerHTML = html || "";
-      return t.value;
-    }
-
-    function toast(msg) {
-      toastEl.textContent = msg;
-      toastEl.classList.add("show");
-      setTimeout(() => toastEl.classList.remove("show"), 2200);
-    }
-
-    function formatTime(sec) {
-      if (isNaN(sec)) return "0:00";
-      const m = Math.floor(sec / 60), s = Math.floor(sec % 60);
-      return `${m}:${s < 10 ? "0" : ""}${s}`;
-    }
-
-    function extractVideoId(input) {
-      const m = input.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
-      return m ? m[1] : null;
-    }
-
-    // YouTube API Search
     async function handleSearch() {
-      const query = searchInput.value.trim();
-      if (!query) return;
-
+      const query = searchInput.value.trim(); if (!query) return;
       const directId = extractVideoId(query);
-      if (directId) {
-        loadTrack({
-          id: directId,
-          title: "Direct Video Stream",
-          artist: "YouTube",
-          cover: `https://img.youtube.com/vi/${directId}/hqdefault.jpg`
-        });
-        searchInput.value = "";
-        return;
-      }
-
-      if (!searchHistory.includes(query)) {
-        searchHistory.unshift(query);
-        if (searchHistory.length > 12) searchHistory.pop();
-        localStorage.setItem("aura_history", JSON.stringify(searchHistory));
-      }
+      if (directId) { loadTrack({ id: directId, title: "Direct Video Stream", artist: "YouTube", cover: `https://img.youtube.com/vi/${directId}/hqdefault.jpg` }); searchInput.value = ""; return; }
+      if (!searchHistory.includes(query)) { searchHistory.unshift(query); if (searchHistory.length > 12) searchHistory.pop(); localStorage.setItem("aura_history", JSON.stringify(searchHistory)); }
 
       searchBtn.innerHTML = "<span>...</span>";
       try {
         const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=12&q=${encodeURIComponent(query)}&key=${YOUTUBE_API_KEY}`;
-        const res = await fetch(url);
-        const data = await res.json();
-
-        if (data.error) {
-          toast(data.error.message || "API Error");
-          return;
-        }
-
-        const items = (data.items || []).map(item => ({
-          id: item.id.videoId,
-          title: decodeHtml(item.snippet.title),
-          artist: decodeHtml(item.snippet.channelTitle),
-          cover: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.default.url
-        }));
-
-        if (!items.length) {
-          toast("No songs found");
-          return;
-        }
-
-        activeQueue = items;
-        queueIndex = -1;
-        renderTrackList(resultsList, items, "results");
-        switchTab("results");
-        updateQueueCount();
-      } catch (err) {
-        toast("Search error: check network");
-      } finally {
-        searchBtn.innerHTML = "<span>Find</span>";
-      }
+        const res = await fetch(url), data = await res.json();
+        if (data.error) return toast(data.error.message || "API Error");
+        const items = (data.items || []).map(item => ({ id: item.id.videoId, title: decodeHtml(item.snippet.title), artist: decodeHtml(item.snippet.channelTitle), cover: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.default.url }));
+        if (!items.length) return toast("No songs found");
+        activeQueue = items; queueIndex = -1; renderTrackList(resultsList, items, "results"); switchTab("results"); updateQueueCount();
+      } catch (err) { toast("Search error: check network"); }
+      finally { searchBtn.innerHTML = "<span>Find</span>"; }
     }
 
     function renderTrackList(container, tracks, type) {
       container.innerHTML = "";
-      if (!tracks.length) {
-        container.innerHTML = `<div class="empty-state">${type === "favorites" ? "No favorites yet" : type === "queue" ? "Queue is empty" : type === "recent" ? "Nothing played yet" : "No results"}</div>`;
-        return;
-      }
+      if (!tracks.length) { container.innerHTML = `<div class="empty-state">${type === "favorites" ? "No favorites yet" : type === "queue" ? "Queue is empty" : type === "recent" ? "Nothing played yet" : "No results"}</div>`; return; }
       tracks.forEach((track, idx) => {
-        const row = document.createElement("div");
-        row.className = "track-row" + (currentTrack && currentTrack.id === track.id ? " active" : "");
-        row.innerHTML = `
-          <img src="${track.cover}" class="track-thumb" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400'" />
-          <div class="track-meta">
-            <div class="track-name">${track.title}</div>
-            <div class="track-channel">${track.artist}</div>
-          </div>
-          <div class="track-actions">
-            <button data-act="queue" title="Add to queue">＋</button>
-            <button data-act="plist" title="Add to playlist">☰</button>
-          </div>`;
+        const row = document.createElement("div"); row.className = "track-row" + (currentTrack && currentTrack.id === track.id ? " active" : "");
+        row.innerHTML = `<img src="${track.cover}" class="track-thumb" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400'" /><div class="track-meta"><div class="track-name">${track.title}</div><div class="track-channel">${track.artist}</div></div><div class="track-actions"><button data-act="queue" title="Add to queue">＋</button><button data-act="plist" title="Add to playlist">☰</button></div>`;
         row.querySelector("[data-act=queue]").onclick = (e) => { e.stopPropagation(); addToQueue(track); };
         row.querySelector("[data-act=plist]").onclick = (e) => { e.stopPropagation(); openAddToPlaylist(track); };
-        row.onclick = () => {
-          if (type === "queue") { queueIndex = idx; loadTrack(track); }
-          else { activeQueue = tracks; queueIndex = idx; loadTrack(track); updateQueueCount(); }
-        };
+        row.onclick = () => { if (type === "queue") { queueIndex = idx; loadTrack(track); } else { activeQueue = tracks; queueIndex = idx; loadTrack(track); updateQueueCount(); } };
         container.appendChild(row);
       });
     }
 
     function renderPlaylists() {
-      playlistsList.innerHTML = "";
-      const names = Object.keys(playlists);
-      if (!names.length) {
-        playlistsList.innerHTML = `<div class="empty-state">No playlists<br><button class="btn-action" style="margin-top:10px" id="new-pl-btn">Create one</button></div>`;
-        $("new-pl-btn")?.addEventListener("click", () => openSheet("playlist-sheet"));
-        return;
-      }
-      const createRow = document.createElement("div");
-      createRow.className = "track-row";
-      createRow.innerHTML = `<div class="track-meta"><div class="track-name">＋ New Playlist</div></div>`;
-      createRow.onclick = () => openSheet("playlist-sheet");
-      playlistsList.appendChild(createRow);
-
+      playlistsList.innerHTML = ""; const names = Object.keys(playlists);
+      if (!names.length) { playlistsList.innerHTML = `<div class="empty-state">No playlists<br><button class="btn-action" style="margin-top:10px" id="new-pl-btn">Create one</button></div>`; $("new-pl-btn")?.addEventListener("click", () => openSheet("playlist-sheet")); return; }
+      const createRow = document.createElement("div"); createRow.className = "track-row"; createRow.innerHTML = `<div class="track-meta"><div class="track-name">＋ New Playlist</div></div>`; createRow.onclick = () => openSheet("playlist-sheet"); playlistsList.appendChild(createRow);
       names.forEach(name => {
-        const tracks = playlists[name];
-        const row = document.createElement("div");
-        row.className = "track-row";
-        row.innerHTML = `
-          <div class="track-meta">
-            <div class="track-name">${name}</div>
-            <div class="track-channel">${tracks.length} tracks</div>
-          </div>
-          <div class="track-actions">
-            <button data-act="play">▶</button>
-            <button data-act="del">✕</button>
-          </div>`;
-        row.querySelector("[data-act=play]").onclick = (e) => {
-          e.stopPropagation();
-          if (!tracks.length) return toast("Empty playlist");
-          activeQueue = [...tracks]; queueIndex = 0; loadTrack(tracks[0]); updateQueueCount(); switchTab("queue");
-        };
-        row.querySelector("[data-act=del]").onclick = (e) => {
-          e.stopPropagation();
-          if (confirm(`Delete playlist "${name}"?`)) {
-            delete playlists[name];
-            localStorage.setItem("aura_playlists", JSON.stringify(playlists));
-            renderPlaylists(); toast("Deleted");
-          }
-        };
-        row.onclick = () => {
-          activeQueue = [...tracks]; queueIndex = -1;
-          renderTrackList(queueList, activeQueue, "queue");
-          updateQueueCount(); switchTab("queue");
-        };
+        const tracks = playlists[name], row = document.createElement("div"); row.className = "track-row";
+        row.innerHTML = `<div class="track-meta"><div class="track-name">${name}</div><div class="track-channel">${tracks.length} tracks</div></div><div class="track-actions"><button data-act="play">▶</button><button data-act="del">✕</button></div>`;
+        row.querySelector("[data-act=play]").onclick = (e) => { e.stopPropagation(); if (!tracks.length) return toast("Empty playlist"); activeQueue = [...tracks]; queueIndex = 0; loadTrack(tracks[0]); updateQueueCount(); switchTab("queue"); };
+        row.querySelector("[data-act=del]").onclick = (e) => { e.stopPropagation(); if (confirm(`Delete playlist "${name}"?`)) { delete playlists[name]; localStorage.setItem("aura_playlists", JSON.stringify(playlists)); renderPlaylists(); toast("Deleted"); } };
+        row.onclick = () => { activeQueue = [...tracks]; queueIndex = -1; renderTrackList(queueList, activeQueue, "queue"); updateQueueCount(); switchTab("queue"); };
         playlistsList.appendChild(row);
       });
     }
 
     function loadTrack(track, addToRecent = true) {
-      currentTrack = track;
-      titleEl.textContent = track.title;
-      artistEl.textContent = track.artist;
-      coverEl.style.backgroundImage = `url(${track.cover})`;
-      coverGlowEl.style.backgroundImage = `url(${track.cover})`;
-      updateHeartState();
-
-      if (player && player.loadVideoById) {
-        player.loadVideoById(track.id);
-      }
-
-      if (addToRecent) {
-        recent = recent.filter(t => t.id !== track.id);
-        recent.unshift(track);
-        if (recent.length > 40) recent.pop();
-        localStorage.setItem("aura_recent", JSON.stringify(recent));
-      }
-
-      // Mobile Lock-Screen Controls
+      currentTrack = track; titleEl.textContent = track.title; artistEl.textContent = track.artist;
+      coverEl.style.backgroundImage = `url(${track.cover})`; coverGlowEl.style.backgroundImage = `url(${track.cover})`; updateHeartState();
+      if (player?.loadVideoById) player.loadVideoById(track.id);
+      if (addToRecent) { recent = recent.filter(t => t.id !== track.id); recent.unshift(track); if (recent.length > 40) recent.pop(); localStorage.setItem("aura_recent", JSON.stringify(recent)); }
       if ("mediaSession" in navigator) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: track.title, 
-          artist: track.artist,
-          artwork: [{ src: track.cover, sizes: "512x512", type: "image/jpeg" }]
-        });
-        navigator.mediaSession.setActionHandler("play", togglePlay);
-        navigator.mediaSession.setActionHandler("pause", togglePlay);
-        navigator.mediaSession.setActionHandler("previoustrack", playPrevTrack);
-        navigator.mediaSession.setActionHandler("nexttrack", playNextTrack);
-        navigator.mediaSession.setActionHandler("seekbackward", () => skip(-10));
-        navigator.mediaSession.setActionHandler("seekforward", () => skip(10));
+        navigator.mediaSession.metadata = new MediaMetadata({ title: track.title, artist: track.artist, artwork: [{ src: track.cover, sizes: "512x512", type: "image/jpeg" }] });
+        navigator.mediaSession.setActionHandler("play", togglePlay); navigator.mediaSession.setActionHandler("pause", togglePlay);
+        navigator.mediaSession.setActionHandler("previoustrack", playPrevTrack); navigator.mediaSession.setActionHandler("nexttrack", playNextTrack);
+        navigator.mediaSession.setActionHandler("seekbackward", () => skip(-10)); navigator.mediaSession.setActionHandler("seekforward", () => skip(10));
       }
     }
 
-    function togglePlay() {
-      if (!player) return;
-      if (isPlaying) {
-        player.pauseVideo();
-      } else {
-        player.playVideo();
-      }
-    }
-
+    function togglePlay() { if (!player) return; isPlaying ? player.pauseVideo() : player.playVideo(); }
     function playNextTrack() {
       if (!activeQueue.length) return;
-      if (shuffleOn) {
-        queueIndex = Math.floor(Math.random() * activeQueue.length);
-      } else {
-        queueIndex = (queueIndex + 1) % activeQueue.length;
-        if (queueIndex === 0 && repeatMode !== 2 && !shuffleOn) {
-          player.pauseVideo();
-          return;
-        }
-      }
+      if (shuffleOn) { queueIndex = Math.floor(Math.random() * activeQueue.length); }
+      else { queueIndex = (queueIndex + 1) % activeQueue.length; if (queueIndex === 0 && repeatMode !== 2 && !shuffleOn) { player.pauseVideo(); return; } }
       loadTrack(activeQueue[queueIndex]);
     }
-
     function playPrevTrack() {
       if (!activeQueue.length) return;
-      if (player && player.getCurrentTime && player.getCurrentTime() > 3) {
-        player.seekTo(0, true);
-        return;
-      }
-      queueIndex = (queueIndex - 1 + activeQueue.length) % activeQueue.length;
-      loadTrack(activeQueue[queueIndex]);
+      if (player?.getCurrentTime && player.getCurrentTime() > 3) { player.seekTo(0, true); return; }
+      queueIndex = (queueIndex - 1 + activeQueue.length) % activeQueue.length; loadTrack(activeQueue[queueIndex]);
     }
-
-    function skip(sec) {
-      if (!player || !player.getCurrentTime) return;
-      player.seekTo(Math.max(0, player.getCurrentTime() + sec), true);
-    }
-
-    function addToQueue(track) {
-      activeQueue.push(track);
-      updateQueueCount();
-      if (document.querySelector('.tab-btn[data-tab="queue"].active')) renderTrackList(queueList, activeQueue, "queue");
-      toast("Added to queue");
-    }
+    function skip(sec) { if (player?.getCurrentTime) player.seekTo(Math.max(0, player.getCurrentTime() + sec), true); }
+    function addToQueue(track) { activeQueue.push(track); updateQueueCount(); if (document.querySelector('.tab-btn[data-tab="queue"].active')) renderTrackList(queueList, activeQueue, "queue"); toast("Added to queue"); }
 
     function startProgressTracking() {
       stopProgressTracking();
       progressTimer = setInterval(() => {
-        if (!player || !player.getCurrentTime) return;
-        const cur = player.getCurrentTime();
-        const dur = player.getDuration();
-        if (dur > 0) {
-          seekBar.value = (cur / dur) * 100;
-          currentTimeEl.textContent = formatTime(cur);
-          durationEl.textContent = formatTime(dur);
-        }
-        if (sleepEnd && Date.now() >= sleepEnd) {
-          player.pauseVideo();
-          clearSleep();
-          toast("Sleep timer ended");
-        }
+        if (!player?.getCurrentTime) return;
+        const cur = player.getCurrentTime(), dur = player.getDuration();
+        if (dur > 0) { seekBar.value = (cur / dur) * 100; currentTimeEl.textContent = formatTime(cur); durationEl.textContent = formatTime(dur); }
+        if (sleepEnd && Date.now() >= sleepEnd) { player.pauseVideo(); clearSleep(); toast("Sleep timer ended"); }
       }, 400);
     }
-
     function stopProgressTracking() { clearInterval(progressTimer); }
-    
-    seekBar.addEventListener("input", () => {
-      if (!player || !player.getDuration) return;
-      player.seekTo((seekBar.value / 100) * player.getDuration(), true);
-    });
+    seekBar.addEventListener("input", () => { if (player?.getDuration) player.seekTo((seekBar.value / 100) * player.getDuration(), true); });
 
     volBar.value = volume;
-    volBar.addEventListener("input", () => {
-      volume = +volBar.value;
-      isMuted = false;
-      if (player && player.setVolume) player.setVolume(volume);
-      localStorage.setItem("aura_vol", volume);
-      updateVolIcon();
-    });
-    muteBtn.onclick = () => {
-      isMuted = !isMuted;
-      if (player && player.setVolume) player.setVolume(isMuted ? 0 : volume);
-      updateVolIcon();
-    };
+    volBar.addEventListener("input", () => { volume = +volBar.value; isMuted = false; if (player?.setVolume) player.setVolume(volume); localStorage.setItem("aura_vol", volume); updateVolIcon(); });
+    muteBtn.onclick = () => { isMuted = !isMuted; if (player?.setVolume) player.setVolume(isMuted ? 0 : volume); updateVolIcon(); };
     function updateVolIcon() {
       volIcon.innerHTML = (isMuted || volume === 0)
         ? `<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>`
         : `<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>`;
     }
 
-    shuffleBtn.onclick = () => {
-      shuffleOn = !shuffleOn;
-      shuffleBtn.classList.toggle("active", shuffleOn);
-      toast(shuffleOn ? "Shuffle on" : "Shuffle off");
-    };
-    repeatBtn.onclick = () => {
-      repeatMode = (repeatMode + 1) % 3;
-      repeatBtn.classList.toggle("active", repeatMode > 0);
-      const labels = ["Repeat off", "Repeat one", "Repeat all"];
-      toast(labels[repeatMode]);
-    };
+    shuffleBtn.onclick = () => { shuffleOn = !shuffleOn; shuffleBtn.classList.toggle("active", shuffleOn); toast(shuffleOn ? "Shuffle on" : "Shuffle off"); };
+    repeatBtn.onclick = () => { repeatMode = (repeatMode + 1) % 3; repeatBtn.classList.toggle("active", repeatMode > 0); toast(["Repeat off", "Repeat one", "Repeat all"][repeatMode]); };
 
-    function updateHeartState() {
-      if (!currentTrack) { heartBtn.classList.remove("active"); return; }
-      heartBtn.classList.toggle("active", favorites.some(t => t.id === currentTrack.id));
-    }
+    function updateHeartState() { if (!currentTrack) return heartBtn.classList.remove("active"); heartBtn.classList.toggle("active", favorites.some(t => t.id === currentTrack.id)); }
     heartBtn.onclick = () => {
       if (!currentTrack) return;
       const i = favorites.findIndex(t => t.id === currentTrack.id);
-      if (i > -1) favorites.splice(i, 1);
-      else favorites.push(currentTrack);
-      localStorage.setItem("aura_favs", JSON.stringify(favorites));
-      updateHeartState(); updateFavCount();
+      if (i > -1) favorites.splice(i, 1); else favorites.push(currentTrack);
+      localStorage.setItem("aura_favs", JSON.stringify(favorites)); updateHeartState(); updateFavCount();
       if (document.querySelector('.tab-btn[data-tab="favorites"].active')) renderTrackList(favoritesList, favorites, "favorites");
       toast(i > -1 ? "Removed from favorites" : "Added to favorites");
     };
@@ -797,12 +406,13 @@
 
     function switchTab(tab) {
       document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
-      [resultsList, queueList, favoritesList, recentList, playlistsList].forEach(l => l.classList.remove("show"));
+      [resultsList, queueList, favoritesList, recentList, playlistsList, discoverList].forEach(l => l.classList.remove("show"));
       if (tab === "results") resultsList.classList.add("show");
       else if (tab === "queue") { renderTrackList(queueList, activeQueue, "queue"); queueList.classList.add("show"); }
       else if (tab === "favorites") { renderTrackList(favoritesList, favorites, "favorites"); favoritesList.classList.add("show"); }
       else if (tab === "recent") { renderTrackList(recentList, recent, "recent"); recentList.classList.add("show"); }
       else if (tab === "playlists") { renderPlaylists(); playlistsList.classList.add("show"); }
+      else if (tab === "discover") { renderDiscover(); discoverList.classList.add("show"); }
     }
     document.querySelectorAll(".tab-btn").forEach(b => b.addEventListener("click", () => switchTab(b.dataset.tab)));
 
@@ -813,86 +423,36 @@
 
     $("menu-btn").onclick = () => openSheet("menu-sheet");
     $("sleep-btn").onclick = () => openSheet("sleep-sheet");
-    $("theme-btn").onclick = () => {
-      const next = document.documentElement.getAttribute("data-theme") === "light" ? "" : "light";
-      document.documentElement.setAttribute("data-theme", next);
-      localStorage.setItem("aura_theme", next);
-      toast(next ? "Light mode" : "Dark mode");
-    };
+    $("theme-btn").onclick = () => { const next = document.documentElement.getAttribute("data-theme") === "light" ? "" : "light"; document.documentElement.setAttribute("data-theme", next); localStorage.setItem("aura_theme", next); toast(next ? "Light mode" : "Dark mode"); };
     if (localStorage.getItem("aura_theme") === "light") document.documentElement.setAttribute("data-theme", "light");
 
     document.querySelectorAll("[data-sleep]").forEach(btn => {
       btn.onclick = () => {
-        const mins = +btn.dataset.sleep;
-        clearSleep();
-        if (mins > 0) {
-          sleepEnd = Date.now() + mins * 60000;
-          sleepBadge.textContent = `Sleep ${mins}m`;
-          sleepBadge.classList.add("show");
-          toast(`Sleep timer: ${mins} min`);
-        } else toast("Timer cancelled");
+        const mins = +btn.dataset.sleep; clearSleep();
+        if (mins > 0) { sleepEnd = Date.now() + mins * 60000; sleepBadge.textContent = `Sleep ${mins}m`; sleepBadge.classList.add("show"); toast(`Sleep timer: ${mins} min`); }
+        else toast("Timer cancelled");
         closeSheets();
       };
     });
     function clearSleep() { sleepEnd = 0; sleepBadge.classList.remove("show"); }
 
-    $("lyrics-btn").onclick = () => {
-      if (!currentTrack) return toast("No track playing");
-      const q = encodeURIComponent(currentTrack.title + " " + currentTrack.artist + " lyrics");
-      window.open(`https://www.google.com/search?q=${q}`, "_blank");
-    };
-
+    $("lyrics-btn").onclick = () => { if (!currentTrack) return toast("No track playing"); window.open(`https://www.google.com/search?q=${encodeURIComponent(currentTrack.title + " " + currentTrack.artist + " lyrics")}`, "_blank"); };
     $("create-playlist-btn").onclick = () => {
-      const name = $("playlist-name").value.trim();
-      if (!name) return toast("Enter a name");
-      if (playlists[name]) return toast("Already exists");
-      playlists[name] = [];
-      localStorage.setItem("aura_playlists", JSON.stringify(playlists));
-      $("playlist-name").value = "";
-      closeSheets(); renderPlaylists(); toast("Playlist created");
+      const name = $("playlist-name").value.trim(); if (!name) return toast("Enter a name"); if (playlists[name]) return toast("Already exists");
+      playlists[name] = []; localStorage.setItem("aura_playlists", JSON.stringify(playlists)); $("playlist-name").value = ""; closeSheets(); renderPlaylists(); toast("Playlist created");
     };
     function openAddToPlaylist(track) {
-      const box = $("add-playlist-options");
-      box.innerHTML = "";
-      const names = Object.keys(playlists);
-      if (!names.length) {
-        box.innerHTML = `<div class="empty-state">Create a playlist first</div>`;
-      } else {
-        names.forEach(n => {
-          const b = document.createElement("button");
-          b.className = "sheet-btn"; b.style.marginBottom = "8px";
-          b.textContent = n;
-          b.onclick = () => {
-            playlists[n].push(track);
-            localStorage.setItem("aura_playlists", JSON.stringify(playlists));
-            toast(`Added to ${n}`); closeSheets();
-          };
-          box.appendChild(b);
-        });
-      }
+      const box = $("add-playlist-options"); box.innerHTML = ""; const names = Object.keys(playlists);
+      if (!names.length) { box.innerHTML = `<div class="empty-state">Create a playlist first</div>`; }
+      else { names.forEach(n => { const b = document.createElement("button"); b.className = "sheet-btn"; b.style.marginBottom = "8px"; b.textContent = n; b.onclick = () => { playlists[n].push(track); localStorage.setItem("aura_playlists", JSON.stringify(playlists)); toast(`Added to ${n}`); closeSheets(); }; box.appendChild(b); }); }
       openSheet("add-to-playlist-sheet");
     }
 
-    $("export-btn").onclick = () => {
-      const blob = new Blob([JSON.stringify(favorites, null, 2)], { type: "application/json" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob); a.download = "aura-favorites.json"; a.click();
-      toast("Exported"); closeSheets();
-    };
+    $("export-btn").onclick = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(favorites, null, 2)], { type: "application/json" })); a.download = "aura-favorites.json"; a.click(); toast("Exported"); closeSheets(); };
     $("import-btn").onclick = () => $("import-file").click();
     $("import-file").onchange = (e) => {
-      const file = e.target.files[0]; if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        try {
-          const data = JSON.parse(reader.result);
-          if (Array.isArray(data)) {
-            favorites = data; localStorage.setItem("aura_favs", JSON.stringify(favorites));
-            updateFavCount(); toast("Imported " + data.length + " tracks");
-          } else toast("Invalid file");
-        } catch { toast("Import failed"); }
-        closeSheets();
-      };
+      const file = e.target.files[0]; if (!file) return; const reader = new FileReader();
+      reader.onload = () => { try { const data = JSON.parse(reader.result); if (Array.isArray(data)) { favorites = data; localStorage.setItem("aura_favs", JSON.stringify(favorites)); updateFavCount(); toast("Imported " + data.length + " tracks"); } else toast("Invalid file"); } catch { toast("Import failed"); } closeSheets(); };
       reader.readAsText(file);
     };
     $("clear-recent-btn").onclick = () => { recent = []; localStorage.setItem("aura_recent", "[]"); toast("Recent cleared"); closeSheets(); };
@@ -903,8 +463,8 @@
       if (e.code === "Space") { e.preventDefault(); togglePlay(); }
       else if (e.code === "ArrowLeft") skip(-10);
       else if (e.code === "ArrowRight") skip(10);
-      else if (e.code === "ArrowUp") { volume = Math.min(100, volume + 5); volBar.value = volume; if (player && player.setVolume) player.setVolume(volume); }
-      else if (e.code === "ArrowDown") { volume = Math.max(0, volume - 5); volBar.value = volume; if (player && player.setVolume) player.setVolume(volume); }
+      else if (e.code === "ArrowUp") { volume = Math.min(100, volume + 5); volBar.value = volume; if (player?.setVolume) player.setVolume(volume); }
+      else if (e.code === "ArrowDown") { volume = Math.max(0, volume - 5); volBar.value = volume; if (player?.setVolume) player.setVolume(volume); }
       else if (e.key === "n" || e.key === "N") playNextTrack();
       else if (e.key === "p" || e.key === "P") playPrevTrack();
       else if (e.key === "f" || e.key === "F") heartBtn.click();
@@ -925,10 +485,8 @@
       if (resultsList.children.length === 0 && searchHistory.length) {
         resultsList.innerHTML = `<div style="padding:10px;font-size:0.75rem;color:var(--text-muted)">Recent searches</div>`;
         searchHistory.forEach(q => {
-          const chip = document.createElement("span");
-          chip.className = "history-chip"; chip.textContent = q;
-          chip.onclick = () => { searchInput.value = q; handleSearch(); };
-          resultsList.appendChild(chip);
+          const chip = document.createElement("span"); chip.className = "history-chip"; chip.textContent = q;
+          chip.onclick = () => { searchInput.value = q; handleSearch(); }; resultsList.appendChild(chip);
         });
         resultsList.classList.add("show");
       }
